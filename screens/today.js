@@ -220,28 +220,43 @@ App.screens.today = function(container) {
   function openDayPicker(ds, dayIdx) {
     const planned = plannedWorkout(ds);
     const done = completedWorkout(ds);
-    const canComplete = ds <= todayS && planned !== 'Rest';
+    // Completing is done inside the workout for today; past days can't be opened, so they keep a link here
+    const isPast = ds < todayS;
     const custom = !!Store.get().workoutPlan[ds] && Store.get().workoutPlan[ds] !== PLAN.schedule[dayIdx];
+    let choice = planned;
     App.showModal(`<h2>${DOW[dayIdx]}, ${ds}</h2>
-      <p class="text-sm text-muted" style="margin:4px 0 12px">Choose the workout for this day. Choosing doesn't mark it done.</p>
+      <p class="text-sm text-muted" style="margin:4px 0 12px">Pick the workout for this day.</p>
       ${workoutOptionsHTML(planned)}
-      ${canComplete ? `<button class="btn btn-full mt12 ${done ? 'btn-secondary' : 'btn-primary'}" id="toggle-done-btn">
-          ${done ? `${CHECK_SVG} ${done} completed · tap to undo` : `Mark ${planned} completed`}</button>` : ''}
+      <button class="btn btn-primary btn-full mt12" id="change-wo-btn"></button>
+      ${isPast && planned !== 'Rest' ? `<button class="link-btn mt8" id="toggle-done-btn">${done ? `${done} completed · undo` : `Mark ${planned} completed`}</button>` : ''}
       ${custom || done ? `<button class="link-btn mt8" id="reset-day-btn">Reset to schedule (${PLAN.schedule[dayIdx]})</button>` : ''}`);
-    const refresh = () => { App.navigate('today'); openDayPicker(ds, dayIdx); };
-    document.querySelectorAll('#modal-content [data-wo]').forEach(el => el.onclick = () => {
-      const w = el.dataset.wo;
-      setPlanned(ds, w);
-      // A completed day keeps matching what was picked
-      if (completedWorkout(ds)) setCompleted(ds, w === 'Rest' ? null : w);
-      refresh();
-    });
+    const btn = document.getElementById('change-wo-btn');
+    const sync = () => {
+      document.querySelectorAll('#modal-content [data-wo]').forEach(el => {
+        const on = el.dataset.wo === choice;
+        el.classList.toggle('selected', on);
+        el.setAttribute('aria-pressed', on);
+      });
+      btn.textContent = choice === planned ? 'Keep ' + planned : `Change to ${choice}`;
+    };
+    document.querySelectorAll('#modal-content [data-wo]').forEach(el => el.onclick = () => { choice = el.dataset.wo; sync(); });
+    btn.onclick = () => {
+      if (choice !== planned) {
+        setPlanned(ds, choice);
+        // A completed (past) day keeps matching what was picked
+        if (completedWorkout(ds)) setCompleted(ds, choice === 'Rest' ? null : choice);
+        App.toast(`${DOW[dayIdx]}: ${choice}`);
+      }
+      App.closeModal();
+      App.navigate('today');
+    };
+    sync();
     const tog = document.getElementById('toggle-done-btn');
-    if (tog) tog.onclick = () => { setCompleted(ds, done ? null : planned); refresh(); };
+    if (tog) tog.onclick = () => { setCompleted(ds, done ? null : planned); App.closeModal(); App.navigate('today'); };
     const reset = document.getElementById('reset-day-btn');
     if (reset) reset.onclick = () => {
       Store.set(d => { delete d.workoutPlan[ds]; delete d.workoutLogs[ds]; });
-      refresh();
+      App.closeModal(); App.navigate('today');
     };
   }
 };
