@@ -43,10 +43,10 @@ App.renderBodyweight = function(el) {
     });
     ctx.fillText(pts[0].date.slice(5), pad.l, h - 4);
     ctx.textAlign = 'right'; ctx.fillText(pts[pts.length-1].date.slice(5), w - pad.r, h - 4);
-    ctx.strokeStyle = '#e94560'; ctx.lineWidth = 2; ctx.beginPath();
+    ctx.strokeStyle = '#3498db'; ctx.lineWidth = 2; ctx.beginPath();
     pts.forEach((p, i) => i ? ctx.lineTo(x(i), y(p.kg)) : ctx.moveTo(x(i), y(p.kg)));
     ctx.stroke();
-    ctx.fillStyle = '#e94560';
+    ctx.fillStyle = '#3498db';
     pts.forEach((p, i) => { ctx.beginPath(); ctx.arc(x(i), y(p.kg), 3, 0, Math.PI * 2); ctx.fill(); });
   }
 };

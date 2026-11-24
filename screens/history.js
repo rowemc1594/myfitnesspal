@@ -10,7 +10,7 @@ App.screens.history = function(container) {
   const stale = daysSince === null || daysSince >= 14;
   bk.innerHTML = `<div class="card-title">Backup</div>
     <div class="text-sm">Last backup: <strong>${last || 'Never'}</strong></div>
-    ${stale ? `<div class="text-sm text-accent mt8">It's been a while — consider exporting a backup.</div>` : ''}
+    ${stale ? `<div class="text-sm mt8" style="color:var(--accent2)">It's been a while — consider exporting a backup.</div>` : ''}
     <div class="row mt12">
       <button class="btn btn-primary btn-sm" id="export-btn">Export</button>
       <button class="btn btn-secondary btn-sm" id="import-btn">Import</button>
