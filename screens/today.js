@@ -80,8 +80,6 @@ App.screens.today = function(container) {
 
   function renderTodaySupps(el, ds) {
     const suppLogs = Store.get().supplementLogs[ds] || {};
-    const waterGlasses = Store.get().waterLogs[ds] || 0;
-    const waterGoal = PLAN.waterGoalLitres * 4; // 250ml glasses
     el.innerHTML = `<div class="card-title">Daily Checklist</div>`;
 
     // Supplements
@@ -101,43 +99,81 @@ App.screens.today = function(container) {
     });
 
     // Water
-    // Stored as tick counts (1 tick = 1 cup = 8 oz); unit only changes the label
-    const fmtWater = n => Store.get().settings.waterUnit === 'oz'
-      ? `${n * 8} / ${waterGoal * 8} oz`
-      : `${n} / ${waterGoal} cups`;
+    // Stored as cup counts (1 drop = 1 cup = 8 oz); unit only changes labels
     const waterRow = document.createElement('div');
     waterRow.className = 'mt12';
-    const unit = Store.get().settings.waterUnit;
-    waterRow.innerHTML = `<div class="row-between text-sm" style="margin-bottom:8px">
-        <div class="row" style="gap:8px"><span>Water</span>
-          <select id="water-unit" class="select-sm" aria-label="Water unit">
-            <option value="cups" ${unit === 'cups' ? 'selected' : ''}>Cups</option>
-            <option value="oz" ${unit === 'oz' ? 'selected' : ''}>Ounces</option>
-          </select></div>
-        <span id="water-label">${fmtWater(waterGlasses)}</span></div>`;
-    waterRow.querySelector('#water-unit').addEventListener('change', e => {
-      Store.set(d => d.settings.waterUnit = e.target.value);
-      waterRow.querySelector('#water-label').textContent = fmtWater(Store.get().waterLogs[ds] || 0);
-    });
-    const glassesEl = document.createElement('div');
-    glassesEl.className = 'water-glasses';
-    for (let i = 0; i < waterGoal; i++) {
-      const g = document.createElement('div');
-      g.className = 'water-glass' + (i < waterGlasses ? ' filled' : '');
-      g.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg>';
-      g.addEventListener('click', () => {
-        const current = Store.get().waterLogs[ds] || 0;
-        const newVal = i < current ? i : i + 1;
-        Store.set(d => d.waterLogs[ds] = newVal);
-        waterRow.querySelector('#water-label').textContent = fmtWater(newVal);
-        for (let j = 0; j < waterGoal; j++) {
-          glassesEl.children[j].classList.toggle('filled', j < newVal);
-        }
-      });
-      glassesEl.appendChild(g);
-    }
-    waterRow.appendChild(glassesEl);
     el.appendChild(waterRow);
+    renderWater();
+
+    function renderWater() {
+      const { waterUnit: unit, waterGoalCups: goal } = Store.get().settings;
+      const count = Store.get().waterLogs[ds] || 0;
+      const amt = n => unit === 'oz' ? `${n * 8}` : `${n}`;
+      const unitLbl = unit === 'oz' ? 'oz' : 'cups';
+      waterRow.innerHTML = `<div class="row-between text-sm" style="margin-bottom:8px">
+          <div class="row" style="gap:8px"><span>Water</span>
+            <select id="water-unit" class="select-sm" aria-label="Water unit">
+              <option value="cups" ${unit === 'cups' ? 'selected' : ''}>Cups</option>
+              <option value="oz" ${unit === 'oz' ? 'selected' : ''}>Ounces</option>
+            </select></div>
+          <span><span id="water-label">${amt(count)}</span> /
+            <button id="water-goal-btn" class="link-btn" aria-label="Edit water goal">${amt(goal)} ${unitLbl}
+              <svg class="icon" style="width:13px;height:13px" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></button></span>
+        </div>
+        ${count >= goal ? '<div class="text-sm text-green" style="margin-bottom:8px">Goal reached</div>' : ''}`;
+      waterRow.querySelector('#water-unit').onchange = e => {
+        Store.set(d => d.settings.waterUnit = e.target.value);
+        renderWater();
+      };
+      waterRow.querySelector('#water-goal-btn').onclick = editGoal;
+
+      const drops = document.createElement('div');
+      drops.className = 'water-glasses';
+      for (let i = 0; i < Math.max(goal, count); i++) {
+        const g = document.createElement('button');
+        g.className = 'water-glass' + (i < count ? ' filled' : '') + (i >= goal ? ' extra' : '');
+        g.setAttribute('aria-label', `Cup ${i + 1}`);
+        g.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg>';
+        g.onclick = () => {
+          const cur = Store.get().waterLogs[ds] || 0;
+          Store.set(d => d.waterLogs[ds] = i < cur ? i : i + 1);
+          renderWater();
+        };
+        drops.appendChild(g);
+      }
+      if (count >= goal) {
+        const plus = document.createElement('button');
+        plus.className = 'water-glass water-plus';
+        plus.setAttribute('aria-label', 'Add a cup');
+        plus.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>';
+        plus.onclick = () => {
+          Store.set(d => d.waterLogs[ds] = (d.waterLogs[ds] || 0) + 1);
+          renderWater();
+        };
+        drops.appendChild(plus);
+      }
+      waterRow.appendChild(drops);
+    }
+
+    function editGoal() {
+      const { waterUnit: unit, waterGoalCups: goal } = Store.get().settings;
+      const oz = unit === 'oz';
+      App.showModal(`<h2>Daily water goal</h2>
+        <p class="text-sm text-muted mt8">${oz ? 'In ounces. Rounded to the nearest cup (8 oz); each drop is one cup.' : 'In cups. Each drop is one cup (8 oz).'}</p>
+        <div class="row mt12">
+          <input type="number" inputmode="numeric" min="1" step="${oz ? 8 : 1}" id="water-goal-input" style="flex:1" value="${oz ? goal * 8 : goal}">
+          <span class="text-muted">${oz ? 'oz' : 'cups'}</span>
+          <button class="btn btn-primary btn-sm" id="water-goal-save">Save</button>
+        </div>`);
+      document.getElementById('water-goal-save').onclick = () => {
+        const v = parseFloat(document.getElementById('water-goal-input').value);
+        if (!(v > 0)) return;
+        const cups = Math.min(40, Math.max(1, Math.round(oz ? v / 8 : v)));
+        Store.set(d => d.settings.waterGoalCups = cups);
+        App.closeModal();
+        renderWater();
+      };
+    }
   }
 
   function openDayPicker(ds, dayIdx) {

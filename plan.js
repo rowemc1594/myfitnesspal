@@ -322,9 +322,7 @@ const PLAN = {
     { id: 'fishoil', label: 'Fish oil' },
     { id: 'protein', label: 'Protein powder' },
     { id: 'pickles', label: '2 dill pickles' }
-  ],
-
-  waterGoalLitres: 4
+  ]
 };
 
 if (typeof module !== 'undefined') module.exports = PLAN;

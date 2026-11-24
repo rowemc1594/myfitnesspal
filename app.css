@@ -127,7 +127,10 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
   -webkit-tap-highlight-color: transparent;
 }
 select.select-sm { width: auto; padding: 4px 8px; font-size: 0.82rem; min-height: 32px; }
-.water-glass { color: var(--text2); }
+.water-glass { color: var(--text2); padding: 0; }
+.water-glass.extra { border-style: dashed; }
+.water-plus { color: var(--text); }
+.link-btn { background: none; border: none; color: var(--text); font: inherit; text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; padding: 6px 0; display: inline-flex; align-items: center; gap: 4px; }
 .water-glass .icon { width: 18px; height: 18px; }
 .water-glass.filled { background: var(--text); border-color: var(--text); color: var(--bg); }
 .water-glass.filled .icon { fill: currentColor; }
