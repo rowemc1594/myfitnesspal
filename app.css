@@ -11,6 +11,7 @@
   --text:      #f0f0f0;
   --text2:     #999;
   --green:     #2ecc71;
+  --blue:      #3498db;   /* "get ready / do this next" (timer's last 5 s, today, Start) */
   --radius:    12px;
   --nav-h:     68px;
   --header-h:  52px;
@@ -94,7 +95,9 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
   border: 1.5px solid var(--border); background: var(--bg3);
   cursor: pointer; gap: 3px; -webkit-tap-highlight-color: transparent;
 }
-.day-chip.today { border-color: var(--accent); }
+.day-chip.today { border-color: var(--blue); background: color-mix(in srgb, var(--blue) 12%, var(--bg3)); }
+.day-chip.today .dc-dow { color: var(--blue); }
+#start-btn { background: var(--blue); }
 .day-chip.done { background: color-mix(in srgb, var(--green) 15%, var(--bg3)); border-color: var(--green); }
 .day-chip .dc-dow { font-size: 0.65rem; text-transform: uppercase; color: var(--text2); }
 .day-chip .dc-date { font-size: 0.85rem; font-weight: 700; }
@@ -385,8 +388,8 @@ select {
 @keyframes ti-tip-in { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
 .ti-tip { color: var(--text); font-size: .85rem; }
 /* Last 5 seconds: blue "get ready" */
-.timer-slot.soon { background: rgba(52,152,219,.18); border-color: #3498db; transition: background .3s, border-color .3s; }
+.timer-slot.soon { background: rgba(52,152,219,.18); border-color: var(--blue); transition: background .3s, border-color .3s; }
 .timer-slot.soon .ti-time { color: #5dade2; }
-.timer-slot.soon .ti-fill { background: #3498db; }
-#rest-timer-bar.soon { border-color: #3498db; background: #1b3a52; }
+.timer-slot.soon .ti-fill { background: var(--blue); }
+#rest-timer-bar.soon { border-color: var(--blue); background: #1b3a52; }
 #build-tag { font-size: .7rem; color: var(--text2); opacity: .9; margin-left: 6px; margin-right: auto; align-self: center; font-weight: 400; }
