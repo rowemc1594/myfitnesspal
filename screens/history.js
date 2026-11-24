@@ -11,30 +11,6 @@ App.screens.history = function(container) {
   container.appendChild(bwCard);
   App.renderBodyweight(bwCard);
 
-  // Weeks
-  const dates = Object.keys(data.workoutLogs).sort();
-  const thisMon = fmtDate(mondayOfWeek(new Date()));
-  const weeks = new Set(dates.map(d => fmtDate(mondayOfWeek(parseDate(d)))));
-  weeks.add(thisMon);
-  [...weeks].sort().reverse().forEach(monS => {
-    const mon = parseDate(monS);
-    const card = document.createElement('div');
-    card.className = 'card';
-    const count = completedCountThisWeek(mon);
-    card.innerHTML = `<div class="row-between"><div class="card-title" style="margin:0">Week of ${monS}${monS===thisMon?' (current)':''}</div>
-      <span class="badge ${count>=5?'badge-green':'badge-red'}">${count}/5</span></div>`;
-    weekDays(mon).forEach((d, i) => {
-      const ds = fmtDate(d);
-      const w = completedWorkout(ds);
-      const row = document.createElement('div');
-      row.className = 'row-between checklist-item';
-      row.innerHTML = `<span class="text-sm">${DOW[i]} ${d.getDate()}</span><span class="text-sm ${w ? 'text-green' : 'text-muted'}">${w ? '✓ ' + w : '—'}</span>`;
-      row.onclick = () => editDay(ds);
-      card.appendChild(row);
-    });
-    container.appendChild(card);
-  });
-
   // Backup (at the bottom: rarely needed)
   renderBackup();
   function renderBackup() {
@@ -126,22 +102,4 @@ App.screens.history = function(container) {
     container.appendChild(card);
   }
 
-  function editDay(ds) {
-    const cur = completedWorkout(ds);
-    App.showModal(`<h2>${ds}</h2>
-      <p class="text-sm text-muted" style="margin:4px 0 12px">Which workout did you complete this day?</p>
-      ${workoutOptionsHTML(cur)}
-      ${cur ? '<button class="btn btn-secondary btn-full mt12" id="del-day">Not completed — remove</button>' : ''}`);
-    const mc = document.getElementById('modal-content');
-    mc.querySelectorAll('[data-wo]').forEach(el => el.onclick = () => {
-      const w = el.dataset.wo;
-      if (w === 'Rest') { setCompleted(ds, null); setPlanned(ds, 'Rest'); } else setCompleted(ds, w);
-      App.closeModal(); App.navigate('history');
-    });
-    const del = document.getElementById('del-day');
-    if (del) del.onclick = () => {
-      setCompleted(ds, null);
-      App.closeModal(); App.navigate('history');
-    };
-  }
 };
