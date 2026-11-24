@@ -15,6 +15,7 @@
   --nav-h:     68px;
   --header-h:  52px;
   --safe-b:    env(safe-area-inset-bottom, 0px);
+  --safe-t:    env(safe-area-inset-top, 0px);   /* iPhone status bar / notch */
 }
 
 html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 16px; }
@@ -23,7 +24,9 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
 
 /* ── Header ── */
 #app-header {
-  height: var(--header-h);
+  /* Sit below the status bar: the app draws under it (viewport-fit=cover + black-translucent) */
+  height: calc(var(--header-h) + var(--safe-t));
+  padding-top: var(--safe-t) !important;
   display: flex; align-items: center; justify-content: space-between; padding: 0 16px;
   background: var(--bg2);
   border-bottom: 1px solid var(--border);
@@ -280,7 +283,7 @@ a.btn { text-decoration: none; }
 /* ── Timer ── */
 /* Pinned pill under the header, shown when the inline countdown is scrolled away */
 #rest-timer-bar {
-  position: fixed; top: calc(var(--header-h) + 8px); left: 50%; z-index: 150;
+  position: fixed; top: calc(var(--header-h) + var(--safe-t) + 8px); left: 50%; z-index: 150;
   transform: translate(-50%, -8px); opacity: 0; visibility: hidden;
   display: flex; align-items: center; gap: 4px; padding: 4px 4px 4px 6px;
   background: var(--bg3); border: 1px solid var(--accent); border-radius: 999px;
