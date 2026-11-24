@@ -1,6 +1,6 @@
 'use strict';
 // Build number shown in the header. Bump together with CACHE_NAME in sw.js (tracker-v<BUILD>).
-const BUILD = 48;
+const BUILD = 49;
 /* ── Storage ────────────────────────────────────────────────── */
 const STORAGE_KEY = 'trackerData_v1';
 const BACKUP_KEY  = 'trackerData_backup';
@@ -251,6 +251,16 @@ const App = {
       if (!data.bodyweight.length) setTimeout(() => this.openWeightEntry(true), 0);
     }
     document.getElementById('weight-btn').addEventListener('click', () => this.openWeightEntry(false));
+    // TEMPORARY (testing): wipe all data and start fresh. The wiped data is kept in the
+    // restore slot (BACKUP_KEY) so a mis-tap can be recovered. Remove before real use.
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      const cur = localStorage.getItem(STORAGE_KEY);
+      if (cur) localStorage.setItem(BACKUP_KEY, cur);
+      localStorage.removeItem(STORAGE_KEY);
+      Object.keys(localStorage).filter(k => k.startsWith('dbcomplex_rest_')).forEach(k => localStorage.removeItem(k));
+      this.timer.stop();
+      location.reload();
+    });
 
     // Nav
     document.querySelectorAll('.nav-btn').forEach(btn => {

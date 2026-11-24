@@ -51,8 +51,11 @@ Ideas from use, compared to the current app, then planned and shipped in small s
 | 33 | Build number in the header | No way to tell which version the phone is running | Small grey "b46" next to the screen title. It's `BUILD` in `app.js`, bumped together with `CACHE_NAME` (`tracker-v46`) in `sw.js` every release. README updated. | None |
 | 34 | _(bug)_ Phone stuck on an old version | Service worker was cache-first: the app always opened from the offline copy and only updated in the background. Installs also downloaded through the browser's 10-minute HTTP cache, so quick successive releases could store old files. | **Network first:** online, the app loads the latest files (offline copy refreshed as it goes); with no signal or >3 s, it uses the offline copy. Installs fetch with `cache: 'reload'`. The app checks for a new version on every open/return and reloads itself once when one takes over (waits if a timer is running). Tested: auto-update b48 → b49 without closing; loads with the server off. | None. Data is in localStorage, untouched by the service worker. |
 | 35 | _(bug)_ Header hidden behind the iPhone status bar | The app draws under the status bar (`viewport-fit=cover`, translucent status bar) but the header had no top padding, so the title, build number and Weight button sat behind the clock/notch | Header gets `env(safe-area-inset-top)` padding; the timer pill moves down by the same amount. No change on screens without a notch. | None |
+| 36 | **Temporary:** Reset button for testing | No quick way to start over | Red **Reset** next to Weight. One tap wipes all data and reloads as a fresh install (welcome/weight prompt). The wiped data is saved in the restore slot (`trackerData_backup`) first. **Remove before real use** (marked TEMPORARY in `index.html`, `app.js`, `app.css`). | Clears `trackerData_v1`; previous data kept in `trackerData_backup`. |
 
 ## Planned
+
+- **Remove the temporary Reset button** (#36) before real use.
 
 - **Generate the 13 warm-up illustrations** using `images/warmups/PROMPTS.md`, save them with the listed filenames, commit, push. Each starts showing in the app automatically. Then bump `CACHE_NAME` so phones fetch them.
 

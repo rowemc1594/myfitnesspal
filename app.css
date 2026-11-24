@@ -61,6 +61,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
 .icon { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
 .nav-btn .nav-icon { width: 24px; height: 24px; }
 #weight-btn { gap: 6px; }
+#reset-btn { margin-right: 8px; color: var(--accent); border-color: var(--accent); } /* temporary */
 .nav-btn.active { color: var(--accent); }
 
 /* ── Cards ── */
