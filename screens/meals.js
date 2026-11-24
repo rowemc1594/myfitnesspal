@@ -10,7 +10,9 @@ App.renderMealChecklist = function(el, ds, { allowReorder = false, collapsible =
   });
   const isOptional = item => /^optional/i.test(item);
   const ticks = id => (Store.get().mealLogs[ds] || {})[id] || {};
-  const isDone = meal => meal.items.every((item, i) => isOptional(item) || ticks(meal.id)[i]);
+  const allTicked = meal => meal.items.every((item, i) => isOptional(item) || ticks(meal.id)[i]);
+  // A meal is done when every required item is ticked, or you closed it with some left out
+  const isDone = meal => !!ticks(meal.id).closed || allTicked(meal);
   let reordering = false;
 
   function setTicks(mealId, fn) {
@@ -77,7 +79,7 @@ App.renderMealChecklist = function(el, ds, { allowReorder = false, collapsible =
         </div>
         ${reordering ? '' : `<div class="meal-items">
           ${meal.items.map((item, i) => `
-            <button class="meal-item ${t[i] ? 'checked' : ''} ${isOptional(item) ? 'optional' : ''}" data-idx="${i}">
+            <button class="meal-item ${t[i] ? 'checked' : ''} ${isOptional(item) ? 'optional' : ''} ${done && !t[i] && !isOptional(item) ? 'skipped' : ''}" data-idx="${i}">
               <span class="mini-check">${CHECK}</span><span>${item}</span>
             </button>`).join('')}
         </div>`}`;
@@ -86,8 +88,17 @@ App.renderMealChecklist = function(el, ds, { allowReorder = false, collapsible =
       card.querySelectorAll('[data-move]').forEach(b => b.onclick = () => move(pos, parseInt(b.dataset.move)));
       const big = card.querySelector('.meal-check');
       if (big) big.onclick = () => setTicks(meal.id, m => {
-        // Whole-meal tick: required items on, or everything off if already done
-        meal.items.forEach((item, i) => { m[i] = done ? false : (isOptional(item) ? !!m[i] : true); });
+        if (done) {
+          // Undo: clear the whole meal
+          meal.items.forEach((item, i) => { m[i] = false; });
+          delete m.closed;
+        } else if (meal.items.some((item, i) => m[i])) {
+          // Some items ticked: close the meal as eaten, leaving the rest marked skipped
+          m.closed = true;
+        } else {
+          // Nothing ticked yet: you ate it all
+          meal.items.forEach((item, i) => { m[i] = isOptional(item) ? !!m[i] : true; });
+        }
       });
       card.querySelectorAll('.meal-item').forEach(b => b.onclick = () => {
         const i = parseInt(b.dataset.idx);

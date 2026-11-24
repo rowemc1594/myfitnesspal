@@ -176,6 +176,8 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
 .mini-check .icon { width: 13px; height: 13px; stroke-width: 3; }
 .meal-item.checked .mini-check { background: var(--green); border-color: var(--green); color: #fff; }
 .meal-item.checked > span:last-child { text-decoration: line-through; color: var(--text2); }
+.meal-item.skipped > span:last-child { color: var(--text2); opacity: .6; }
+.meal-item.skipped > span:last-child::after { content: " · skipped"; font-size: .75rem; font-style: italic; }
 .btn-icon:disabled { opacity: 0.3; }
 
 /* ── Water counter ── */
