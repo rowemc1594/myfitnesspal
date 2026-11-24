@@ -107,10 +107,14 @@ App.screens.workouts = function(container) {
         const n = setsDone(ex), of = ex.sets || 1;
         const st = n >= of ? 'done' : n ? 'some' : ui === next ? 'next' : '';
         const [letter, ...rest] = ex.label.split(' ');
-        return `<button class="xs-tile ${st}" data-unit="${ui}" aria-label="${ex.label}: ${n} of ${of} sets">
+        return `<button class="xs-tile ${st}${ui === next && n < of ? ' cur' : ''}" data-unit="${ui}" aria-label="${ex.label}: ${n} of ${of} sets">
           <b>${letter}${n >= of ? ' ✓' : ''}</b><span>${rest.join(' ')}</span><em>${n}/${of}</em></button>`;
       }).join('')}</div>`).join('')}
     </div>`;
+    // Keep the current exercise's square in view (the strip scrolls sideways)
+    const cur = stripEl.querySelector(`.xs-tile[data-unit="${next}"]`);
+    const row = stripEl.querySelector('.xs-row');
+    if (cur) row.scrollLeft = Math.max(0, cur.offsetLeft - row.offsetLeft - 70);
     stripEl.querySelectorAll('[data-unit]').forEach(b => b.onclick = () => focusUnit(+b.dataset.unit, true));
     const w = stripEl.querySelector('[data-warm]');
     if (w) w.onclick = () => workoutContainer.querySelector('.warmup-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
