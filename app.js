@@ -379,6 +379,7 @@ const App = {
     pill.classList.toggle('visible', !inView);
     pill.classList.toggle('go', !!st.doneAt);
     pill.classList.toggle('work', st.kind === 'work');
+    pill.classList.toggle('soon', !st.doneAt && rem <= 5);
     pill.innerHTML = `<button class="tp-main">${st.doneAt ? (st.kind === 'work' ? 'Time!' : 'Go!') : `${st.kind === 'work' ? 'Work' : 'Rest'} ${this.fmtClock(rem)}`}
         <span class="tp-label">${st.label || ''}</span></button>
       ${st.doneAt ? '' : '<button class="tp-btn" data-t="add">+15</button>'}

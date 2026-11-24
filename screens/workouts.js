@@ -440,7 +440,7 @@ function renderInlineTimer(st) {
     }
     const rem = App.timer.remaining();
     const pct = st.doneAt ? 0 : Math.min(100, rem / st.total * 100);
-    slot.className = 'timer-slot active' + (st.doneAt ? ' go' : '') + (st.kind === 'work' ? ' work' : '');
+    slot.className = 'timer-slot active' + (st.doneAt ? ' go' : '') + (st.kind === 'work' ? ' work' : '') + (!st.doneAt && rem <= 5 ? ' soon' : '');
     const big = st.doneAt ? (st.kind === 'work' ? 'Time!' : 'Go!') : App.fmtClock(rem);
     const sub = st.doneAt ? (st.kind === 'work' ? 'Done' : `Start ${st.label.split(' · ')[1] || 'next round'}`)
       : st.kind === 'work' ? 'Working'

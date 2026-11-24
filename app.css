@@ -380,3 +380,8 @@ select {
 .ti-tip.in { animation: ti-tip-in .35s ease-out; }
 @keyframes ti-tip-in { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
 .ti-tip { color: var(--text); font-size: .85rem; }
+/* Last 5 seconds: blue "get ready" */
+.timer-slot.soon { background: rgba(52,152,219,.18); border-color: #3498db; transition: background .3s, border-color .3s; }
+.timer-slot.soon .ti-time { color: #5dade2; }
+.timer-slot.soon .ti-fill { background: #3498db; }
+#rest-timer-bar.soon { border-color: #3498db; background: #1b3a52; }
