@@ -66,6 +66,7 @@ Ideas from use, compared to the current app, then planned and shipped in small s
 | 48 | **Temporary:** Demo button with sample data | Testing History and targets needed hand-entered data | Amber **Demo** next to Reset replaces all data with a sample relative to today: last week fully done (so "Last" and +5 targets show) with meals, water and weigh-ins; this week's past training days done, the 2nd one partial (5 exercises), the 3rd missed; today 3 meals, a popcorn snack, 6 cups water (and a partial workout if it's early in the week, so the orange bar shows). Current data goes to the restore slot first. **Remove before real use** with Reset. | Replaces `trackerData_v1`; previous data kept in `trackerData_backup`. |
 | 49 | Remove the workout bar from History | Blue/orange bar under the day tiles (#47) repeated what the tiles show | Bar and its key removed. The tiles (green done, orange-tinted "5/8" partial, red missed, grey skipped) and "X of 5 done" carry it. | None |
 | 50 | Remove the week progress bar from Today | "Week progress" row and bar under the week strip repeated the day boxes | Removed. "X of 5 done" moved up next to "This Week". | None |
+| 51 | Today shows partly finished workouts in orange | A completed day was green with a check even if exercises were left out | On the week strip a completed-but-partial day keeps its check but turns **orange**. The completed workout card shows **5/8 exercises** on the right (today and when catching up on a past day). Fully done stays green with no count. | None |
 
 ## Planned
 

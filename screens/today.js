@@ -55,7 +55,9 @@ App.screens.today = function(container) {
       : upcoming || planned === 'Rest' ? PLAN.shortNames[planned]
       : skippedDay ? 'Skipped' : missed ? 'Missed' : '—';
     const chip = document.createElement('div');
-    chip.className = 'day-chip' + (isToday ? ' today' : '') + (viewing && ds === viewS ? ' viewing' : '') + (done ? ' done' : '') + (missed ? ' missed' : '') + (skippedDay ? ' skipped' : '');
+    const st = done && done !== 'Rest' ? workoutExerciseStats(ds, done) : null;
+    const partial = st && st.done < st.total;   // marked done but some exercises left out
+    chip.className = 'day-chip' + (isToday ? ' today' : '') + (partial ? ' partial' : '') + (viewing && ds === viewS ? ' viewing' : '') + (done ? ' done' : '') + (missed ? ' missed' : '') + (skippedDay ? ' skipped' : '');
     chip.setAttribute('aria-label', `${DOW[i]} ${d.getDate()}: ${done ? done + ', completed' : missed ? planned + ', missed' : planned + ', planned'}`);
     chip.innerHTML = `
       <span class="dc-dow">${DOW[i]}</span>
@@ -102,7 +104,7 @@ App.screens.today = function(container) {
     if (done) {
       el.innerHTML += `
         <div class="row" style="gap:10px"><span class="done-pill">${CHECK_SVG}</span>
-          <div><div style="font-weight:700">${fullName(done)}</div><div class="text-sm text-green">Completed</div></div></div>
+          <div style="flex:1"><div style="font-weight:700">${fullName(done)}</div><div class="text-sm text-green">Completed</div></div>${exCount(ds, done)}</div>
         <button class="btn btn-secondary btn-full mt12" id="go-workout-btn">View workout</button>
         <button class="link-btn mt8" id="undo-done-btn">Not done? Undo</button>`;
     } else {
@@ -144,7 +146,7 @@ App.screens.today = function(container) {
     el.innerHTML = `<div class="card-title">Workout · ${parseDate(ds).toLocaleDateString(undefined, { weekday: 'long' })}</div>`;
     if (done) {
       el.innerHTML += `<div class="row" style="gap:10px"><span class="done-pill">${CHECK_SVG}</span>
-          <div><div style="font-weight:700">${fullName(done)}</div><div class="text-sm text-green">Completed</div></div></div>
+          <div style="flex:1"><div style="font-weight:700">${fullName(done)}</div><div class="text-sm text-green">Completed</div></div>${exCount(ds, done)}</div>
         <button class="btn btn-secondary btn-full mt12" id="open-wo">View or edit numbers</button>
         <button class="link-btn mt8" id="undo-done-btn">Not done? Undo</button>`;
     } else if (skippedDay) {
@@ -164,6 +166,12 @@ App.screens.today = function(container) {
     el.querySelectorAll('#skip-day').forEach(b => b.onclick = () => { setSkipped(ds, true); App.navigate('today'); });
     el.querySelectorAll('#unskip').forEach(b => b.onclick = () => { setSkipped(ds, false); App.navigate('today'); });
     el.querySelectorAll('#undo-done-btn').forEach(b => b.onclick = () => { setCompleted(ds, null); App.navigate('today'); });
+  }
+
+  // "5/8 exercises" in orange when a completed workout left some out; nothing when all done
+  function exCount(ds, w) {
+    const st = workoutExerciseStats(ds, w);
+    return st.done < st.total ? `<div class="ex-count"><strong>${st.done}/${st.total}</strong><span>exercises</span></div>` : '';
   }
 
   function renderTodaySupps(el, ds) {
