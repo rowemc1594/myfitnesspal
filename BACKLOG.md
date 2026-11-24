@@ -15,6 +15,7 @@ Ideas from use, compared to the current app, then planned and shipped in small s
 | 3b | No litres: cups or ounces instead | Litres/Cups dropdown | Dropdown is now **Cups / Ounces** (default Cups). 1 drop = 1 cup = 8 oz; goal 16 cups / 128 oz. Diet note updated to match. | Schema v3 → v4: any saved unit other than cups/oz becomes `cups`. Water logs unchanged. |
 | 4 | Set your own water goal; drops match the goal; + to go over | Fixed 16 drops (from `PLAN.waterGoalLitres`) | Tap the goal (e.g. "16 cups ✎") to edit it in your current unit (oz rounds to whole cups). One drop per cup of goal. Once you reach the goal: "Goal reached" plus a **+** button; extra cups show as dashed drops and can be tapped off. | Schema v4 → v5: adds `settings.waterGoalCups` (default 16). `PLAN.waterGoalLitres` removed. Water logs unchanged. |
 | 5 | Make the meal checklist easier to tick off | Meals collapsed; tap to open, then tick 3–5 ingredients one by one. "Optional veg" had to be ticked for a meal to count. Reorder arrows on every meal. | One big circle per meal ticks the whole meal (tap again to undo). Ingredients always visible and still tickable one by one. Optional items don't block "done". "X of 5 eaten" with a progress bar, and the next meal highlighted. Reorder arrows only appear after tapping **Reorder**. | None. Same `mealLogs` format. |
+| 6 | Today should hold everything for the day, including meals | Today had week strip, workout and supplements/water; meals were only on the Meals tab | Today's meal checklist now sits on Today, between the workout and supplements/water. It's the same code as the Meals tab, so ticks show in both. The Meals tab keeps Reorder and the diet notes. | None |
 
 ## Planned
 
@@ -22,4 +23,5 @@ _(empty)_
 
 ## Ideas (not yet planned)
 
-_(empty)_
+- Do the workout on Today too (log sets inline instead of switching to the Workouts tab). Suggested earlier; fits #6.
+- Today is getting long: consider collapsing eaten meals to one line so supplements/water stay near the top.

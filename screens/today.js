@@ -52,6 +52,11 @@ App.screens.today = function(container) {
   renderTodayWorkout(wCard, todayS, todayWorkout);
   container.appendChild(wCard);
 
+  // ── Meals ──
+  const mealsEl = document.createElement('div');
+  container.appendChild(mealsEl);
+  App.renderMealChecklist(mealsEl, todayS);
+
   // ── Supplements/water quick summary ──
   const suppCard = document.createElement('div');
   suppCard.className = 'card';
@@ -65,7 +70,6 @@ App.screens.today = function(container) {
     if (wo) {
       el.innerHTML += `<div class="row-between"><span class="badge badge-${wo==='Rest'?'green':'red'}">${wo}</span>
         <button class="btn btn-secondary btn-sm" id="change-today-btn">Change</button></div>
-        <div class="mt8 text-sm text-muted">Meals: ${training ? 'Training Day' : 'Non-Training Day'}</div>
         ${wo !== 'Rest' ? `<button class="btn btn-primary btn-full mt12" id="go-workout-btn">Start Workout</button>` : ''}`;
     } else {
       el.innerHTML += `<div class="text-muted text-sm">No workout logged yet</div>

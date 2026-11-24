@@ -1,41 +1,39 @@
 'use strict';
-App.screens.meals = function(container) {
-  const todayS = todayStr();
-  const training = isTrainingDay(todayS);
+// Meal checklist for one day; used by both Today and Meals screens
+App.renderMealChecklist = function(el, ds, { allowReorder = false } = {}) {
+  const training = isTrainingDay(ds);
   const baseMeals = training ? PLAN.meals.training : PLAN.meals.nonTraining;
-  const savedOrder = (Store.get().mealOrder || {})[todayS] || [];
+  const savedOrder = (Store.get().mealOrder || {})[ds] || [];
   const meals = baseMeals.slice().sort((a, b) => {
     const ia = savedOrder.indexOf(a.id), ib = savedOrder.indexOf(b.id);
     return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || baseMeals.indexOf(a) - baseMeals.indexOf(b);
   });
   const isOptional = item => /^optional/i.test(item);
-  const ticks = id => (Store.get().mealLogs[todayS] || {})[id] || {};
+  const ticks = id => (Store.get().mealLogs[ds] || {})[id] || {};
   const isDone = meal => meal.items.every((item, i) => isOptional(item) || ticks(meal.id)[i]);
   let reordering = false;
 
   function setTicks(mealId, fn) {
     Store.set(d => {
-      d.mealLogs[todayS] = d.mealLogs[todayS] || {};
-      d.mealLogs[todayS][mealId] = d.mealLogs[todayS][mealId] || {};
-      fn(d.mealLogs[todayS][mealId]);
+      d.mealLogs[ds] = d.mealLogs[ds] || {};
+      d.mealLogs[ds][mealId] = d.mealLogs[ds][mealId] || {};
+      fn(d.mealLogs[ds][mealId]);
     });
     render();
   }
 
   function move(idx, dir) {
-    const ids = meals.map(m => m.id);
     const j = idx + dir;
-    if (j < 0 || j >= ids.length) return;
-    [ids[idx], ids[j]] = [ids[j], ids[idx]];
+    if (j < 0 || j >= meals.length) return;
     [meals[idx], meals[j]] = [meals[j], meals[idx]];
-    Store.set(d => { d.mealOrder = d.mealOrder || {}; d.mealOrder[todayS] = ids; });
+    Store.set(d => { d.mealOrder = d.mealOrder || {}; d.mealOrder[ds] = meals.map(m => m.id); });
     render();
   }
 
   const CHECK = '<svg class="icon" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 
   function render() {
-    container.innerHTML = '';
+    el.innerHTML = '';
     const doneCount = meals.filter(isDone).length;
     const nextIdx = meals.findIndex(m => !isDone(m));
 
@@ -46,11 +44,12 @@ App.screens.meals = function(container) {
           <div class="card-title" style="margin-bottom:4px">${training ? 'Training day' : 'Non-training day'} meals</div>
           <div><strong>${doneCount}</strong> of ${meals.length} eaten</div>
         </div>
-        <button class="btn btn-secondary btn-sm" id="reorder-btn">${reordering ? 'Done' : 'Reorder'}</button>
+        ${allowReorder ? `<button class="btn btn-secondary btn-sm" data-reorder>${reordering ? 'Done' : 'Reorder'}</button>` : ''}
       </div>
       <div class="progress-bar mt8"><div class="progress-fill" style="width:${doneCount / meals.length * 100}%"></div></div>`;
-    hdr.querySelector('#reorder-btn').onclick = () => { reordering = !reordering; render(); };
-    container.appendChild(hdr);
+    const rb = hdr.querySelector('[data-reorder]');
+    if (rb) rb.onclick = () => { reordering = !reordering; render(); };
+    el.appendChild(hdr);
 
     meals.forEach((meal, pos) => {
       const done = isDone(meal);
@@ -76,26 +75,32 @@ App.screens.meals = function(container) {
               <span class="mini-check">${CHECK}</span><span>${item}</span>
             </button>`).join('')}
         </div>`}`;
-      container.appendChild(card);
+      el.appendChild(card);
 
       card.querySelectorAll('[data-move]').forEach(b => b.onclick = () => move(pos, parseInt(b.dataset.move)));
       const big = card.querySelector('.meal-check');
       if (big) big.onclick = () => setTicks(meal.id, m => {
-        // Whole-meal tick: all items on, or all off if already done
-        meal.items.forEach((item, i) => { m[i] = !done && !isOptional(item) ? true : (done ? false : !!m[i]); });
+        // Whole-meal tick: required items on, or everything off if already done
+        meal.items.forEach((item, i) => { m[i] = done ? false : (isOptional(item) ? !!m[i] : true); });
       });
-      card.querySelectorAll('.meal-item').forEach(el => el.onclick = () => {
-        const i = parseInt(el.dataset.idx);
+      card.querySelectorAll('.meal-item').forEach(b => b.onclick = () => {
+        const i = parseInt(b.dataset.idx);
         setTicks(meal.id, m => { m[i] = !m[i]; });
       });
     });
-
-    const notes = document.createElement('div');
-    notes.className = 'card';
-    notes.innerHTML = `<div class="card-title">Diet Notes</div>
-      ${PLAN.dietNotes.map(n => `<div class="text-sm mt8">• ${n}</div>`).join('')}`;
-    container.appendChild(notes);
   }
 
   render();
+};
+
+App.screens.meals = function(container) {
+  const list = document.createElement('div');
+  container.appendChild(list);
+  App.renderMealChecklist(list, todayStr(), { allowReorder: true });
+
+  const notes = document.createElement('div');
+  notes.className = 'card';
+  notes.innerHTML = `<div class="card-title">Diet Notes</div>
+    ${PLAN.dietNotes.map(n => `<div class="text-sm mt8">• ${n}</div>`).join('')}`;
+  container.appendChild(notes);
 };
