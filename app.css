@@ -117,6 +117,37 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
 .checklist-item.checked .check-box::after { content: '✓'; color: #fff; font-weight: 700; }
 .checklist-item.checked .check-label { text-decoration: line-through; color: var(--text2); }
 
+/* ── Meals ── */
+.meal-card.next { border-color: var(--accent); }
+.meal-card.done { opacity: 0.6; }
+.meal-head { display: flex; align-items: center; gap: 12px; }
+.meal-title { flex: 1; font-weight: 700; }
+.meal-title .badge { font-size: .6rem; vertical-align: middle; }
+.meal-check {
+  width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;
+  border: 2px solid var(--border); background: var(--bg3); color: transparent;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.meal-check .icon { width: 24px; height: 24px; stroke-width: 2.5; }
+.meal-card.next .meal-check { border-color: var(--accent); }
+.meal-card.done .meal-check { background: var(--green); border-color: var(--green); color: #fff; }
+.meal-items { margin-top: 8px; padding-left: 60px; }
+.meal-item {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 36px;
+  background: none; border: none; color: var(--text); font: inherit; font-size: 0.88rem;
+  text-align: left; padding: 4px 0; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.meal-item.optional { color: var(--text2); font-style: italic; }
+.mini-check {
+  width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid var(--border);
+  flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: transparent;
+}
+.mini-check .icon { width: 13px; height: 13px; stroke-width: 3; }
+.meal-item.checked .mini-check { background: var(--green); border-color: var(--green); color: #fff; }
+.meal-item.checked > span:last-child { text-decoration: line-through; color: var(--text2); }
+.btn-icon:disabled { opacity: 0.3; }
+
 /* ── Water counter ── */
 .water-row { display: flex; align-items: center; gap: 10px; }
 .water-glasses { display: flex; flex-wrap: wrap; gap: 6px; }
