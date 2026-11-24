@@ -1,0 +1,330 @@
+// plan.js — all static plan data, no logic
+'use strict';
+
+const PLAN = {
+  workouts: {
+    'Day 1': {
+      label: 'Day 1 – Legs',
+      warmup: 'lower',
+      exercises: [
+        {
+          id: 'd1a', label: 'A Lying Leg Curls',
+          note: 'Toes pointed, drive hips into bench with glutes',
+          sets: 4, reps: '12', tempo: '3-0-1', rest: '60-90s'
+        },
+        {
+          id: 'd1b1', label: 'B1 Leg Press',
+          note: 'Heels slightly raised, push off balls of feet',
+          sets: 4, reps: '10', tempo: '2-0-1', rest: '0-15s', supersetGroup: 'B'
+        },
+        {
+          id: 'd1b2', label: 'B2 Full Squats',
+          note: 'Free bar, butt-to-heels, heels on plates, no Smith',
+          sets: 4, reps: '6', tempo: '2-0-1', rest: '120s', supersetGroup: 'B'
+        },
+        {
+          id: 'd1c', label: 'C DB Split Squats',
+          note: '',
+          sets: 3, reps: '12 each', tempo: '2-0-1', rest: '60s'
+        },
+        {
+          id: 'd1d', label: 'D Romanian Deadlifts',
+          note: 'Toes on plates',
+          sets: 3, reps: '10', tempo: '3-0-1', rest: '60-90s'
+        },
+        {
+          id: 'd1e', label: 'E Leg Extensions',
+          note: 'Sit upright, dorsiflex the ankle all set',
+          sets: 4, reps: '15', tempo: '2-0-1', rest: '30s'
+        },
+        {
+          id: 'd1f', label: 'F Leg Press Calf Raise',
+          note: '5s down, 15s pause stretched, 1s up',
+          sets: 1, reps: '10-12', tempo: '5-15-1', rest: 'none'
+        }
+      ]
+    },
+    'Day 2': {
+      label: 'Day 2 – Chest/Shoulders',
+      warmup: 'upper',
+      exercises: [
+        {
+          id: 'd2a', label: 'A Flat DB Press',
+          note: '',
+          sets: 4, reps: '8', tempo: '3-0-1', rest: '120s'
+        },
+        {
+          id: 'd2b', label: 'B Incline Barbell Press',
+          note: "Don't touch chest, no lockout, constant tension",
+          sets: 3, reps: '8', tempo: '3-0-1', rest: '120s'
+        },
+        {
+          id: 'd2c', label: 'C Slight Decline Smith Bench Press',
+          note: 'Set 1=12, Set 2=10, Set 3=8, Set 4=6 (add weight each set), then drop for 8, then drop to failure',
+          sets: 4, reps: '12/10/8/6+drops', tempo: '3-0-1', rest: '90s'
+        },
+        {
+          id: 'd2d1', label: 'D1 Push Ups',
+          note: '',
+          sets: 3, reps: 'failure', tempo: '2-0-1', rest: '0s', supersetGroup: 'D'
+        },
+        {
+          id: 'd2d2', label: 'D2 Pec Stretch',
+          note: 'Stretch both pecs 30s between sets, 60s rest after',
+          sets: 3, reps: '30s each side', tempo: '', rest: '60s', supersetGroup: 'D'
+        },
+        {
+          id: 'd2e', label: 'E Rear Delt Machine',
+          note: 'Palms down',
+          sets: 4, reps: '20', tempo: '2-0-1', rest: '60s'
+        },
+        {
+          id: 'd2f', label: 'F DB Laterals',
+          note: 'Raise to 10 and 2 o\'clock',
+          sets: 3, reps: '15', tempo: '2-0-1', rest: '60s'
+        },
+        {
+          id: 'd2g', label: 'G Seated DB Press',
+          note: '',
+          sets: 4, reps: '6', tempo: '3-0-1', rest: '120s'
+        }
+      ]
+    },
+    'Day 3': {
+      label: 'Day 3 – Back',
+      warmup: 'upper',
+      exercises: [
+        {
+          id: 'd3a', label: 'A Wide-Grip Seated Cable Row',
+          note: 'Neutral grip if possible; work up in sets of 10 to a tough 10 with 2-3 reps in tank, then 3 sets',
+          sets: 3, reps: '10', tempo: '2-1-1', rest: '90s'
+        },
+        {
+          id: 'd3b1', label: 'B1 Rack Pulls from Mid Shin (Phase 1)',
+          note: 'Sets of 3 until barely 3 with good form; last 3 sets are working sets',
+          sets: 3, reps: '3', tempo: '2-1-1', rest: '120-180s', supersetGroup: 'B'
+        },
+        {
+          id: 'd3b2', label: 'B2 Rack Pulls (Phase 2)',
+          note: '5-min set using Phase 1 working weight; sets of 2, step back count to 10, repeat; rest 20s (30s if form slips)',
+          sets: 1, reps: '5 min', tempo: '2-1-1', rest: '—', supersetGroup: 'B'
+        },
+        {
+          id: 'd3c', label: 'C Lat Pulldowns',
+          note: 'Overhand medium grip',
+          sets: 4, reps: '8', tempo: '3-0-1', rest: '60-90s'
+        },
+        {
+          id: 'd3d', label: 'D Lat Stretchers',
+          note: '',
+          sets: 4, reps: '12', tempo: '3-0-1', rest: '60-90s'
+        },
+        {
+          id: 'd3e', label: 'E Hyperextensions',
+          note: '',
+          sets: 4, reps: '15', tempo: '3-0-1', rest: '60s'
+        }
+      ]
+    },
+    'Day 4': {
+      label: 'Day 4 – Arms',
+      warmup: 'upper',
+      exercises: [
+        {
+          id: 'd4a1', label: 'A1 Seated DB Curls',
+          note: 'Palms up all set',
+          sets: 4, reps: '8 each', tempo: '3-0-1', rest: '0s', supersetGroup: 'A'
+        },
+        {
+          id: 'd4a2', label: 'A2 Rope Pushdowns',
+          note: '',
+          sets: 4, reps: '15', tempo: '3-0-1', rest: '60s', supersetGroup: 'A'
+        },
+        {
+          id: 'd4b1', label: 'B1 Alternating Hammer Curls',
+          note: '+8 bottom partials on all sets',
+          sets: 4, reps: '12 each + 8 partials', tempo: '3-0-1', rest: '0s', supersetGroup: 'B'
+        },
+        {
+          id: 'd4b2', label: 'B2 Seated Overhead Rope Extensions',
+          note: '',
+          sets: 4, reps: '15', tempo: '3-0-1', rest: '60s', supersetGroup: 'B'
+        },
+        {
+          id: 'd4c', label: 'C Machine Preacher Curls',
+          note: '',
+          sets: 4, reps: '15', tempo: '2-0-1', rest: '30s'
+        },
+        {
+          id: 'd4d', label: 'D Lying Triceps Extensions',
+          note: '',
+          sets: 4, reps: '8', tempo: '2-0-1', rest: '60s'
+        }
+      ]
+    },
+    'Dumbbell Complex': {
+      label: 'Dumbbell Complex',
+      warmup: null,
+      dbComplex: true,
+      exercises: [
+        { id: 'dc1', label: 'One-Arm DB Swing', reps: '8-10' },
+        { id: 'dc2', label: 'One-Arm DB Clean & Press from Floor', reps: '8-10' },
+        { id: 'dc3', label: 'One-Arm DB Squat to Press', reps: '8-10' },
+        { id: 'dc4', label: 'DB Squat Thrust', reps: '8-10' }
+      ],
+      rounds: 6,
+      restBetweenRounds: 90,
+      restReductionPerWeek: 15,
+      cardioAfter: '10-20 min steady-state',
+      note: 'Chain without putting dumbbells down. One arm all reps then the other.'
+    }
+  },
+
+  workoutOrder: ['Day 1', 'Day 2', 'Dumbbell Complex', 'Day 3', 'Day 4'],
+
+  warmups: {
+    lower: [
+      'Cat/Camel',
+      'Warrior Lunge Stretch — 2×20-25s per side',
+      'Bird Dogs',
+      'Two-Legged Glute Bridges',
+      'Front-to-Back Hip Swings',
+      'Frontal Plane Hip Swings',
+      'Dynamic Calf Stretch'
+    ],
+    upper: [
+      'Scapular Push Ups',
+      'Broomstick Dislocations',
+      'Shoulder Circles (little to big)',
+      'Wall Slides',
+      'Reach-Roll-Lift',
+      'Dynamic Blackburns'
+    ],
+    liftingNote: 'A couple of light, progressively heavier low-rep sets before work sets (e.g. 45×5, 65×3, 85×1, then 100 for work sets).'
+  },
+
+  tempoHelp: {
+    title: 'Tempo Explained',
+    body: [
+      'Tempo is written as 3 digits: Eccentric – Bottom pause – Concentric.',
+      'Example 3-0-1: 3 seconds lowering, no pause at bottom, 1 second lifting.',
+      'Example 5-15-1 (calf raise): 5s down, 15s pause in stretched position, 1s up.',
+      'Focus on the eccentric (lowering) phase — this builds the most muscle.'
+    ]
+  },
+
+  meals: {
+    training: [
+      {
+        id: 'tm1', label: 'Meal 1',
+        items: [
+          '1 whole egg + 5 egg whites',
+          '40g oats (dry)',
+          '1 serving fruit'
+        ]
+      },
+      {
+        id: 'tm2', label: 'Meal 2',
+        items: [
+          '220g cottage cheese',
+          'Rice cake up to 120 cal',
+          '14g almonds'
+        ]
+      },
+      {
+        id: 'tm3', label: 'Meal 3',
+        items: [
+          '120g chicken breast OR 174g tuna (cooked weight)',
+          'Tortillas up to 120 cal',
+          '22g full-fat cheese',
+          'Optional: 1 cup veg'
+        ]
+      },
+      {
+        id: 'tm4', label: 'Meal 4 (Post-Workout)',
+        postWorkout: true,
+        items: [
+          '45g protein powder',
+          'Any low-fat carb up to 250 cal (46–52g carbs)'
+        ]
+      },
+      {
+        id: 'tm5', label: 'Meal 5',
+        items: [
+          '110g top sirloin OR 116g 95% lean ground beef (cooked weight)',
+          '150g russet potato (dry weight)',
+          '17g cashews',
+          'Optional veg',
+          '1 tsp liquid fish oil'
+        ]
+      }
+    ],
+    nonTraining: [
+      {
+        id: 'ntm1', label: 'Meal 1',
+        items: [
+          '2 whole eggs + 3 whites',
+          '15g full-fat cheese',
+          '5g coconut oil or 6g butter',
+          'Optional veg'
+        ]
+      },
+      {
+        id: 'ntm2', label: 'Meal 2',
+        items: [
+          '45g protein powder',
+          'Rice cake up to 120 cal',
+          '14g almonds'
+        ]
+      },
+      {
+        id: 'ntm3', label: 'Meal 3',
+        items: [
+          '115g chicken breast OR 194g shrimp (cooked weight)',
+          '115g quinoa (cooked)',
+          '1 serving fruit',
+          'Optional veg'
+        ]
+      },
+      {
+        id: 'ntm4', label: 'Meal 4',
+        items: [
+          '110g top sirloin OR 122g pork tenderloin (cooked weight)',
+          '30g full-fat cheese',
+          '50g avocado',
+          'Optional veg'
+        ]
+      },
+      {
+        id: 'ntm5', label: 'Meal 5',
+        items: [
+          '200g cottage cheese',
+          '20g protein powder',
+          '25g natural peanut butter',
+          '1 tsp liquid fish oil'
+        ]
+      }
+    ]
+  },
+
+  dietNotes: [
+    'Use a scale for all weights.',
+    'Never lift or do intervals fasted — take BCAAs if training early.',
+    'Salad greens are free (unlimited).',
+    'No oil-based marinades.',
+    'Unsweetened almond milk ≈ 35–40 cal/cup.',
+    'Plain Greek yogurt only.',
+    'Target ~4 L water per day.',
+    'First 14 days: 100% compliance, no cheats.'
+  ],
+
+  dailySupplements: [
+    { id: 'fishoil', label: 'Fish oil' },
+    { id: 'protein', label: 'Protein powder' },
+    { id: 'pickles', label: '2 dill pickles' }
+  ],
+
+  waterGoalLitres: 4
+};
+
+if (typeof module !== 'undefined') module.exports = PLAN;
