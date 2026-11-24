@@ -91,7 +91,9 @@ App.screens.today = function(container) {
       const checked = suppLogs[s.id] || false;
       const item = document.createElement('div');
       item.className = 'checklist-item' + (checked ? ' checked' : '');
-      item.innerHTML = `<div class="check-box"></div><span class="check-label">${s.label}</span>`;
+      const amount = s.amount[isTrainingDay(ds) ? 'training' : 'nonTraining'];
+      item.innerHTML = `<div class="check-box"></div>
+        <div><div class="check-label">${s.label}</div><div class="text-sm text-muted">${amount}</div></div>`;
       item.addEventListener('click', () => {
         Store.set(d => {
           if (!d.supplementLogs[ds]) d.supplementLogs[ds] = {};

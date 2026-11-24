@@ -318,10 +318,14 @@ const PLAN = {
     'First 14 days: 100% compliance, no cheats.'
   ],
 
+  // Amounts mirror the meal plan above; keep in sync if meals change
   dailySupplements: [
-    { id: 'fishoil', label: 'Fish oil' },
-    { id: 'protein', label: 'Protein powder' },
-    { id: 'pickles', label: '2 dill pickles' }
+    { id: 'fishoil', label: 'Fish oil',
+      amount: { training: '1 tsp liquid · with Meal 5', nonTraining: '1 tsp liquid · with Meal 5' } },
+    { id: 'protein', label: 'Protein powder',
+      amount: { training: '45 g · Meal 4 (post-workout)', nonTraining: '65 g · 45 g Meal 2 + 20 g Meal 5' } },
+    { id: 'pickles', label: 'Dill pickles',
+      amount: { training: '2 pickles', nonTraining: '2 pickles' } }
   ]
 };
 
