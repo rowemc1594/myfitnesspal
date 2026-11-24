@@ -2,13 +2,14 @@
 /* ── Storage ────────────────────────────────────────────────── */
 const STORAGE_KEY = 'trackerData_v1';
 const BACKUP_KEY  = 'trackerData_backup';
-const SCHEMA_VERSION = 5;
+const SCHEMA_VERSION = 6;
 
 function defaultStore() {
   return {
     schemaVersion: SCHEMA_VERSION,
     bodyweight: [],       // [{date, kg}]
-    workoutLogs: {},      // { 'YYYY-MM-DD': workoutName | 'Rest' | null }
+    workoutLogs: {},      // completed: { 'YYYY-MM-DD': workoutName } ('Rest' entries from old data are ignored)
+    workoutPlan: {},      // chosen for the day, overrides PLAN.schedule: { 'YYYY-MM-DD': workoutName | 'Rest' }
     setLogs: {},          // { 'YYYY-MM-DD_exerciseId_setIdx': {weight, reps, done} }
     mealLogs: {},         // { 'YYYY-MM-DD': { mealId: bool } }
     waterLogs: {},        // { 'YYYY-MM-DD': number (glasses of 250ml) }
@@ -26,7 +27,9 @@ const migrations = [
   d => { d.mealOrder = d.mealOrder || {}; return d; },
   d => { d.settings = Object.assign({ waterUnit: 'L' }, d.settings); return d; },
   d => { if (!['cups', 'oz'].includes(d.settings.waterUnit)) d.settings.waterUnit = 'cups'; return d; },
-  d => { if (!(d.settings.waterGoalCups > 0)) d.settings.waterGoalCups = 16; return d; }
+  d => { if (!(d.settings.waterGoalCups > 0)) d.settings.waterGoalCups = 16; return d; },
+  // Picking a workout used to mean "completed"; keep those as completed and also record them as the day's plan
+  d => { d.workoutPlan = Object.assign({}, d.workoutLogs, d.workoutPlan); return d; }
 ];
 
 function runMigrations(data) {
@@ -113,25 +116,38 @@ function weekDays(monday) {
 const DOW = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
 /* ── Workout helpers ────────────────────────────────────────── */
+function completedWorkout(ds) {
+  const w = Store.get().workoutLogs[ds];
+  return w && w !== 'Rest' ? w : null;
+}
+function plannedWorkout(ds) {
+  const p = Store.get().workoutPlan[ds];
+  if (p) return p;
+  const dow = (parseDate(ds).getDay() + 6) % 7;
+  return PLAN.schedule[dow];
+}
+function setPlanned(ds, w) {
+  Store.set(d => d.workoutPlan[ds] = w);
+}
+function setCompleted(ds, w) {
+  Store.set(d => { if (w) { d.workoutLogs[ds] = w; d.workoutPlan[ds] = w; } else delete d.workoutLogs[ds]; });
+}
 function workoutsThisWeek(monday) {
-  const days = weekDays(monday);
-  const logs = Store.get().workoutLogs;
-  return days.map(d => logs[fmtDate(d)] || null);
+  return weekDays(monday).map(d => completedWorkout(fmtDate(d)));
 }
 function workoutOptionsHTML(current) {
   return [...PLAN.workoutOrder, 'Rest'].map(w => `
-    <div class="checklist-item ${current === w ? 'checked' : ''}" data-wo="${w}">
-      <div class="check-box"></div>
-      <div><div class="check-label">${w}</div><div class="text-sm text-muted">${PLAN.focus[w]}</div></div>
-    </div>`).join('');
+    <button class="wo-option ${current === w ? 'selected' : ''}" data-wo="${w}" aria-pressed="${current === w}">
+      <span class="radio"></span>
+      <span><span class="wo-name">${w}</span><span class="text-sm text-muted" style="display:block">${PLAN.focus[w]}</span></span>
+    </button>`).join('');
 }
 function completedCountThisWeek(monday) {
   const entries = workoutsThisWeek(monday);
   return entries.filter(w => w && w !== 'Rest').length;
 }
 function isTrainingDay(dateStr) {
-  const w = Store.get().workoutLogs[dateStr];
-  if (!w) return false;
+  const w = completedWorkout(dateStr) || plannedWorkout(dateStr);
   return ['Day 1','Day 2','Day 3','Day 4'].includes(w);
 }
 

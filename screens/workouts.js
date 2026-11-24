@@ -1,8 +1,8 @@
 'use strict';
 App.screens.workouts = function(container) {
   const todayS = todayStr();
-  const logs = Store.get().workoutLogs;
-  const todayWorkout = logs[todayS];
+  const planned = plannedWorkout(todayS);
+  const todayWorkout = completedWorkout(todayS) || (planned !== 'Rest' ? planned : '');
 
   // Workout selector
   const selCard = document.createElement('div');
@@ -19,19 +19,39 @@ App.screens.workouts = function(container) {
   container.appendChild(workoutContainer);
 
   const sel = document.getElementById('workout-select');
-  sel.addEventListener('change', () => renderWorkout(sel.value));
-  if (todayWorkout && PLAN.workouts[todayWorkout]) renderWorkout(todayWorkout);
+  sel.addEventListener('change', () => {
+    if (sel.value) setPlanned(todayS, sel.value);
+    show(sel.value);
+  });
+  if (todayWorkout && PLAN.workouts[todayWorkout]) show(todayWorkout);
+
+  function show(name) {
+    renderWorkout(name);
+    if (name) renderFinish(name);
+  }
+
+  function renderFinish(name) {
+    const done = completedWorkout(todayS) === name;
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = done
+      ? `<div class="row" style="gap:10px"><span class="done-pill"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+           <div><div style="font-weight:700">${name} completed</div><div class="text-sm text-muted">Logged for today</div></div></div>
+         <button class="link-btn mt8" id="undo-finish-btn">Not done? Undo</button>`
+      : `<button class="btn btn-primary btn-full" id="finish-btn">Finish workout</button>
+         <div class="text-sm text-muted mt8">Marks ${name} completed for today.</div>`;
+    workoutContainer.appendChild(card);
+    const fin = card.querySelector('#finish-btn');
+    if (fin) fin.onclick = () => { setCompleted(todayS, name); App.toast(name + ' completed'); App.navigate('today'); };
+    const undo = card.querySelector('#undo-finish-btn');
+    if (undo) undo.onclick = () => { setCompleted(todayS, null); show(name); };
+  }
 
   function renderWorkout(name) {
     workoutContainer.innerHTML = '';
     if (!name) return;
     const plan = PLAN.workouts[name];
     if (!plan) return;
-
-    // Auto-log today if not set
-    if (!logs[todayS] || logs[todayS] !== name) {
-      Store.set(d => d.workoutLogs[todayS] = name);
-    }
 
     if (plan.dbComplex) {
       renderDBComplex(plan);

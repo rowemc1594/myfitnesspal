@@ -4,14 +4,15 @@ App.screens.today = function(container) {
   const todayS = todayStr();
   const monday = mondayOfWeek(today);
   const days = weekDays(monday);
-  const logs = Store.get().workoutLogs;
+  const CHECK_SVG = '<svg class="icon" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  const fullName = w => w === 'Rest' ? 'Rest day' : PLAN.workouts[w].label;
 
   // ── Week strip ──
   const stripEl = document.createElement('div');
   stripEl.className = 'card';
   const doneCount = completedCountThisWeek(monday);
   const todayIdx = days.findIndex(d => fmtDate(d) === todayS);
-  const doneThisWeek = new Set(workoutsThisWeek(monday).filter(w => w && w !== 'Rest'));
+  const doneThisWeek = new Set(workoutsThisWeek(monday).filter(Boolean));
 
   stripEl.innerHTML = `
     <div class="card-title">This Week</div>
@@ -31,30 +32,32 @@ App.screens.today = function(container) {
   days.forEach((d, i) => {
     const ds = fmtDate(d);
     const isToday = ds === todayS;
-    const logged = logs[ds];
-    const isDone = logged && logged !== 'Rest';
-    const planned = !logged && i >= todayIdx ? PLAN.schedule[i] : null;
-    // Missed: a past day with nothing logged whose scheduled workout wasn't made up later this week
-    const missed = !logged && i < todayIdx && PLAN.schedule[i] !== 'Rest' && !doneThisWeek.has(PLAN.schedule[i]);
+    const done = completedWorkout(ds);
+    const planned = plannedWorkout(ds);
+    // Missed: a past day not completed whose planned workout wasn't made up later this week
+    const missed = !done && i < todayIdx && planned !== 'Rest' && !doneThisWeek.has(planned);
+    const upcoming = !done && i >= todayIdx;
+    const label = done ? PLAN.shortNames[done]
+      : upcoming || planned === 'Rest' ? PLAN.shortNames[planned]
+      : missed ? 'Missed' : '—';
     const chip = document.createElement('div');
-    chip.className = 'day-chip' + (isToday ? ' today' : '') + (isDone ? ' done' : '') + (missed ? ' missed' : '');
-    chip.setAttribute('aria-label', `${DOW[i]} ${d.getDate()}: ${isDone ? logged + ', completed' : missed ? PLAN.schedule[i] + ', missed' : logged || planned || 'nothing logged'}`);
+    chip.className = 'day-chip' + (isToday ? ' today' : '') + (done ? ' done' : '') + (missed ? ' missed' : '');
+    chip.setAttribute('aria-label', `${DOW[i]} ${d.getDate()}: ${done ? done + ', completed' : missed ? planned + ', missed' : planned + ', planned'}`);
     chip.innerHTML = `
       <span class="dc-dow">${DOW[i]}</span>
       <span class="dc-date">${d.getDate()}</span>
-      <span class="dc-label${planned ? ' planned' : ''}">${logged ? PLAN.shortNames[logged] : planned ? PLAN.shortNames[planned] : missed ? 'Missed' : '—'}</span>
-      <span class="dc-mark">${isDone ? '<svg class="icon" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' : ''}</span>
+      <span class="dc-label${upcoming ? ' planned' : ''}">${label}</span>
+      <span class="dc-mark">${done ? CHECK_SVG : ''}</span>
     `;
     chip.addEventListener('click', () => openDayPicker(ds, i));
     strip.appendChild(chip);
   });
 
   // ── Today workout card ──
-  const todayWorkout = logs[todayS];
   const wCard = document.createElement('div');
   wCard.className = 'card';
   wCard.id = 'today-workout-card';
-  renderTodayWorkout(wCard, todayS, todayWorkout);
+  renderTodayWorkout(wCard, todayS);
   container.appendChild(wCard);
 
   // ── Meals ──
@@ -69,49 +72,53 @@ App.screens.today = function(container) {
   renderTodaySupps(suppCard, todayS);
   container.appendChild(suppCard);
 
-  function renderTodayWorkout(el, ds, wo) {
+  function renderTodayWorkout(el, ds) {
     const dayName = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][todayIdx];
-    const fullName = w => w === 'Rest' ? 'Rest day' : PLAN.workouts[w].label;
     el.innerHTML = `<div class="card-title">Today's Plan · ${dayName}</div>`;
+    const done = completedWorkout(ds);
+    const chosen = Store.get().workoutPlan[ds];
 
-    if (wo) {
-      el.innerHTML += `<div class="row-between"><span class="badge badge-${wo==='Rest'?'green':'red'}">${fullName(wo)}</span>
-        <button class="btn btn-secondary btn-sm" id="change-today-btn">Change</button></div>
-        ${wo !== 'Rest' ? `<button class="btn btn-primary btn-full mt12" id="go-workout-btn">Open Workout</button>` : ''}`;
+    if (done) {
+      el.innerHTML += `
+        <div class="row" style="gap:10px"><span class="done-pill">${CHECK_SVG}</span>
+          <div><div style="font-weight:700">${fullName(done)}</div><div class="text-sm text-green">Completed</div></div></div>
+        <button class="btn btn-secondary btn-full mt12" id="go-workout-btn">View workout</button>
+        <button class="link-btn mt8" id="undo-done-btn">Not done? Undo</button>`;
     } else {
-      // Scheduled workout is the default; earlier scheduled workouts not done this week are offered as catch-ups
+      // Default: what you picked for today, else the weekday's scheduled workout.
+      // Without a pick, earlier missed workouts are offered as catch-ups.
       const scheduled = PLAN.schedule[todayIdx];
       const missed = PLAN.schedule.slice(0, todayIdx)
         .filter((w, i, arr) => w !== 'Rest' && !doneThisWeek.has(w) && arr.indexOf(w) === i);
-      let primary = scheduled;
+      let primary = chosen || scheduled;
       let note = '';
-      if (scheduled !== 'Rest' && doneThisWeek.has(scheduled)) {
+      if (!chosen && scheduled !== 'Rest' && doneThisWeek.has(scheduled)) {
         note = `${scheduled} is already done this week.`;
         primary = missed[0] || PLAN.workoutOrder.find(w => !doneThisWeek.has(w)) || 'Rest';
       }
-      const catchUps = missed.filter(w => w !== primary);
+      const catchUps = chosen ? [] : missed.filter(w => w !== primary);
 
       el.innerHTML += `
         ${note ? `<div class="text-sm text-muted" style="margin-bottom:8px">${note}</div>` : ''}
-        <button class="btn btn-primary btn-full" data-start="${primary}">${primary === 'Rest' ? 'Log rest day' : 'Start ' + fullName(primary)}</button>
+        ${primary === 'Rest'
+          ? `<div style="font-weight:700">Rest day</div><div class="text-sm text-muted">${PLAN.focus.Rest}</div>`
+          : `<button class="btn btn-primary btn-full" id="start-btn">Start ${fullName(primary)}</button>
+             <button class="btn btn-secondary btn-full mt8" id="mark-done-btn">Mark ${primary} done</button>`}
         ${catchUps.length ? `<div class="catchup mt12">
             <div class="text-sm">Missed this week: <strong>${catchUps.map(fullName).join(', ')}</strong></div>
             <div class="row mt8" style="flex-wrap:wrap">
-              ${catchUps.map(w => `<button class="btn btn-secondary btn-sm" data-start="${w}">Do ${w} instead</button>`).join('')}
+              ${catchUps.map(w => `<button class="btn btn-secondary btn-sm" data-switch="${w}">Do ${w} instead</button>`).join('')}
             </div>
           </div>` : ''}
-        <button class="link-btn mt8" id="pick-other-btn">Pick a different workout ›</button>`;
+        <button class="link-btn mt8" id="pick-other-btn">${primary === 'Rest' ? 'Train today instead ›' : 'Pick a different workout ›'}</button>`;
 
-      el.querySelectorAll('[data-start]').forEach(b => b.addEventListener('click', () => {
-        const w = b.dataset.start;
-        Store.set(d => d.workoutLogs[ds] = w);
-        App.navigate(w === 'Rest' ? 'today' : 'workouts');
-      }));
+      el.querySelectorAll('#start-btn').forEach(b => b.onclick = () => { setPlanned(ds, primary); App.navigate('workouts'); });
+      el.querySelectorAll('#mark-done-btn').forEach(b => b.onclick = () => { setCompleted(ds, primary); App.toast(primary + ' marked done'); App.navigate('today'); });
+      el.querySelectorAll('[data-switch]').forEach(b => b.onclick = () => { setPlanned(ds, b.dataset.switch); App.navigate('today'); });
     }
-    el.querySelectorAll('#pick-other-btn, #change-today-btn').forEach(b => b.addEventListener('click', () => openDayPicker(ds, todayIdx)));
-    el.querySelectorAll('#go-workout-btn').forEach(b => b.addEventListener('click', () => {
-      App.navigate('workouts');
-    }));
+    el.querySelectorAll('#pick-other-btn').forEach(b => b.onclick = () => openDayPicker(ds, todayIdx));
+    el.querySelectorAll('#go-workout-btn').forEach(b => b.onclick = () => App.navigate('workouts'));
+    el.querySelectorAll('#undo-done-btn').forEach(b => b.onclick = () => { setCompleted(ds, null); App.navigate('today'); });
   }
 
   function renderTodaySupps(el, ds) {
@@ -214,26 +221,32 @@ App.screens.today = function(container) {
     }
   }
 
+  // Choosing a workout only sets the plan; completion is a separate toggle (today and past days only)
   function openDayPicker(ds, dayIdx) {
-    const current = logs[ds] || '';
-    let html = `<h2 style="margin-bottom:14px">${DOW[dayIdx]}, ${ds}</h2>
-      <div class="section-label">Select workout</div>
-      ${workoutOptionsHTML(current)}`;
-    html += `${current ? `<button class="btn btn-secondary btn-full mt12" id="clear-day-btn">Clear day</button>` : ''}`;
-    App.showModal(html);
-    document.getElementById('modal-content').querySelectorAll('[data-wo]').forEach(el => {
-      el.addEventListener('click', () => {
-        const wo = el.dataset.wo;
-        Store.set(d => d.workoutLogs[ds] = wo);
-        App.closeModal();
-        App.navigate('today');
-      });
+    const planned = plannedWorkout(ds);
+    const done = completedWorkout(ds);
+    const canComplete = ds <= todayS && planned !== 'Rest';
+    const custom = !!Store.get().workoutPlan[ds] && Store.get().workoutPlan[ds] !== PLAN.schedule[dayIdx];
+    App.showModal(`<h2>${DOW[dayIdx]}, ${ds}</h2>
+      <p class="text-sm text-muted" style="margin:4px 0 12px">Choose the workout for this day. Choosing doesn't mark it done.</p>
+      ${workoutOptionsHTML(planned)}
+      ${canComplete ? `<button class="btn btn-full mt12 ${done ? 'btn-secondary' : 'btn-primary'}" id="toggle-done-btn">
+          ${done ? `${CHECK_SVG} ${done} completed · tap to undo` : `Mark ${planned} completed`}</button>` : ''}
+      ${custom || done ? `<button class="link-btn mt8" id="reset-day-btn">Reset to schedule (${PLAN.schedule[dayIdx]})</button>` : ''}`);
+    const refresh = () => { App.navigate('today'); openDayPicker(ds, dayIdx); };
+    document.querySelectorAll('#modal-content [data-wo]').forEach(el => el.onclick = () => {
+      const w = el.dataset.wo;
+      setPlanned(ds, w);
+      // A completed day keeps matching what was picked
+      if (completedWorkout(ds)) setCompleted(ds, w === 'Rest' ? null : w);
+      refresh();
     });
-    const clearBtn = document.getElementById('clear-day-btn');
-    if (clearBtn) clearBtn.addEventListener('click', () => {
-      Store.set(d => delete d.workoutLogs[ds]);
-      App.closeModal();
-      App.navigate('today');
-    });
+    const tog = document.getElementById('toggle-done-btn');
+    if (tog) tog.onclick = () => { setCompleted(ds, done ? null : planned); refresh(); };
+    const reset = document.getElementById('reset-day-btn');
+    if (reset) reset.onclick = () => {
+      Store.set(d => { delete d.workoutPlan[ds]; delete d.workoutLogs[ds]; });
+      refresh();
+    };
   }
 };

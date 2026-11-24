@@ -61,10 +61,10 @@ App.screens.history = function(container) {
       <span class="badge ${count>=5?'badge-green':'badge-red'}">${count}/5</span></div>`;
     weekDays(mon).forEach((d, i) => {
       const ds = fmtDate(d);
-      const w = Store.get().workoutLogs[ds];
+      const w = completedWorkout(ds);
       const row = document.createElement('div');
       row.className = 'row-between checklist-item';
-      row.innerHTML = `<span class="text-sm">${DOW[i]} ${d.getDate()}</span><span class="text-sm ${w?'':'text-muted'}">${w || '—'}</span>`;
+      row.innerHTML = `<span class="text-sm">${DOW[i]} ${d.getDate()}</span><span class="text-sm ${w ? 'text-green' : 'text-muted'}">${w ? '✓ ' + w : '—'}</span>`;
       row.onclick = () => editDay(ds);
       card.appendChild(row);
     });
@@ -72,19 +72,21 @@ App.screens.history = function(container) {
   });
 
   function editDay(ds) {
-    const cur = Store.get().workoutLogs[ds];
-    App.showModal(`<h2 style="margin-bottom:12px">${ds}</h2>
+    const cur = completedWorkout(ds);
+    App.showModal(`<h2>${ds}</h2>
+      <p class="text-sm text-muted" style="margin:4px 0 12px">Which workout did you complete this day?</p>
       ${workoutOptionsHTML(cur)}
-      ${cur ? '<button class="btn btn-secondary btn-full mt12" id="del-day">Delete entry</button>' : ''}`);
+      ${cur ? '<button class="btn btn-secondary btn-full mt12" id="del-day">Not completed — remove</button>' : ''}`);
     const mc = document.getElementById('modal-content');
     mc.querySelectorAll('[data-wo]').forEach(el => el.onclick = () => {
-      Store.set(d => d.workoutLogs[ds] = el.dataset.wo);
+      const w = el.dataset.wo;
+      if (w === 'Rest') { setCompleted(ds, null); setPlanned(ds, 'Rest'); } else setCompleted(ds, w);
       App.closeModal(); App.navigate('history');
     });
     const del = document.getElementById('del-day');
     if (del) del.onclick = () => {
-      if (!confirm('Delete this entry?')) return;
-      Store.set(d => delete d.workoutLogs[ds]);
+      if (!confirm('Remove this completed workout?')) return;
+      setCompleted(ds, null);
       App.closeModal(); App.navigate('history');
     };
   }
