@@ -345,16 +345,17 @@ const App = {
     _tick() {
       const st = this.state;
       if (!st) return;
-      // Last 5 s: one continuous clip (beep at 5,4,3,2,1 then Go at 0), started at 0:05.
-      // While it plays, the clock follows the clip so numbers and beeps stay in step.
+      // Last 5 s: one continuous clip (silence, then beeps at 5,4,3,2,1 and Go at 0), started
+      // at 0:06. Once it's actually playing, the clock follows the clip so numbers match beeps.
+      const LEAD = 6;
       const msLeft = st.endAt - Date.now();
-      if (!st.doneAt && !st.countStarted && msLeft <= 5000 && msLeft > 4000) {
+      if (!st.doneAt && !st.countStarted && msLeft <= LEAD * 1000 && msLeft > 4500) {
         st.countStarted = true;
-        App.playCountdownSound(5 - msLeft / 1000);
+        App.playCountdownSound(Math.max(0, LEAD - msLeft / 1000));
       }
       const clip = App._clips && App._clips.count;
-      if (!st.doneAt && st.countStarted && clip && !clip.paused && clip.currentTime > 0) {
-        st.endAt = Date.now() + (5 - clip.currentTime) * 1000;
+      if (!st.doneAt && st.countStarted && clip && !clip.paused && clip.currentTime > 0.05) {
+        st.endAt = Date.now() + (LEAD - clip.currentTime) * 1000;
       }
       const rem = this.remaining();
       if (!st.doneAt && rem >= 1 && rem <= 5 && st.lastCount !== rem) {
@@ -449,8 +450,10 @@ const App = {
         this._clips = {
           tick: new Audio(this._makeWav([{ freq: 660, len: 0.12 }])),
           go: new Audio(this._makeWav([{ freq: 880, len: 0.25, gap: 0.1 }, { freq: 880, len: 0.25, gap: 0.1 }, { freq: 1100, len: 0.45 }])),
-          // 5 ticks exactly 1 s apart, then the Go sound starting at 5.0 s
+          // 1 s of silence (absorbs the phone's start-up delay), then 5 ticks exactly
+          // 1 s apart, then Go at 6.0 s. Started at 0:06 left.
           count: new Audio(this._makeWav([
+            { freq: 0, len: 0, gap: 1 },
             ...[0, 1, 2, 3, 4].map(() => ({ freq: 660, len: 0.12, gap: 0.88 })),
             { freq: 880, len: 0.25, gap: 0.1 }, { freq: 880, len: 0.25, gap: 0.1 }, { freq: 1100, len: 0.45 }
           ]))
