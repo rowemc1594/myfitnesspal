@@ -64,6 +64,7 @@ Ideas from use, compared to the current app, then planned and shipped in small s
 | 46 | Remove the per-week workout list from History | A "Week of …" list (each day's workout, tap to edit) repeated the This week card | Removed. Past days this week are edited from Today's week strip. Older weeks' workouts can no longer be edited in the app (data kept). | None |
 | 47 | Orange in the workout bar for exercises left out | The bar only counted completed workouts | Each completed workout is 1/5 of the bar: the share of its exercises done is **blue**, the share left out is **orange** (an exercise counts when all its sets are ticked). A partly done day's tile shows e.g. "5/8" in orange. Small key under the bar when there's orange. DB Complex counts as fully done. Note: "Mark all done" without ticking sets shows that workout all orange. | None. Reads existing set ticks. |
 | 48 | **Temporary:** Demo button with sample data | Testing History and targets needed hand-entered data | Amber **Demo** next to Reset replaces all data with a sample relative to today: last week fully done (so "Last" and +5 targets show) with meals, water and weigh-ins; this week's past training days done, the 2nd one partial (5 exercises), the 3rd missed; today 3 meals, a popcorn snack, 6 cups water (and a partial workout if it's early in the week, so the orange bar shows). Current data goes to the restore slot first. **Remove before real use** with Reset. | Replaces `trackerData_v1`; previous data kept in `trackerData_backup`. |
+| 49 | Remove the workout bar from History | Blue/orange bar under the day tiles (#47) repeated what the tiles show | Bar and its key removed. The tiles (green done, orange-tinted "5/8" partial, red missed, grey skipped) and "X of 5 done" carry it. | None |
 
 ## Planned
 
@@ -76,7 +77,6 @@ _(empty)_
 ## Ideas (not yet planned)
 
 - History: tap a partial day tile (e.g. "5/8") to see which exercises were left out, with a **Log them** button that opens that day. (Tile rather than the thin orange bar, which is hard to tap.)
-- History bar: if several days are partial, order segments per workout (Mon blue, Tue blue, Tue orange, …) so each orange sits under its day instead of bunching at the end.
 
 - Let the weekly schedule be edited in the app (currently fixed in `plan.js`). Would need a `settings.schedule` migration.
 - Do the workout on Today too (log sets inline instead of switching to the Workouts tab). Suggested earlier; fits #6.
