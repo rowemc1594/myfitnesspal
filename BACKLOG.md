@@ -75,5 +75,8 @@ _(empty)_
 
 ## Ideas (not yet planned)
 
+- History: tap a partial day tile (e.g. "5/8") to see which exercises were left out, with a **Log them** button that opens that day. (Tile rather than the thin orange bar, which is hard to tap.)
+- History bar: if several days are partial, order segments per workout (Mon blue, Tue blue, Tue orange, …) so each orange sits under its day instead of bunching at the end.
+
 - Let the weekly schedule be edited in the app (currently fixed in `plan.js`). Would need a `settings.schedule` migration.
 - Do the workout on Today too (log sets inline instead of switching to the Workouts tab). Suggested earlier; fits #6.
