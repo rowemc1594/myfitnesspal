@@ -177,8 +177,13 @@ App.screens.workouts = function(container) {
     const title = name.split(' — ')[0];
     if (!info) return;
     const search = encodeURIComponent(title.replace(/\(.*?\)/g, '') + ' warm up exercise');
+    const img = PLAN.warmupImages[name];
     App.showModal(`<h2>${title}</h2>
       <div class="text-sm text-muted" style="margin:4px 0 12px">${info.why}</div>
+      ${img ? `<figure class="wu-figure">
+          <img src="./images/warmups/${img}" alt="${title}: start and end position" onerror="this.closest('figure').remove()">
+          <figcaption><span>Start</span><span>End</span></figcaption>
+        </figure>` : ''}
       <div class="badge badge-green">${info.dose}</div>
       <ol class="wu-steps">${info.steps.map(s => `<li>${s}</li>`).join('')}</ol>
       <div class="card" style="margin-bottom:0"><div class="card-title" style="margin-bottom:4px">Key cue</div><div class="text-sm">${info.cue}</div></div>

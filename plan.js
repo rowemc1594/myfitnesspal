@@ -216,6 +216,23 @@ const PLAN = {
     liftingNote: 'A couple of light, progressively heavier low-rep sets before work sets (e.g. 45×5, 65×3, 85×1, then 100 for work sets).'
   },
 
+  // Illustration file per warm-up in images/warmups/ (see PROMPTS.md there); missing files are simply not shown
+  warmupImages: {
+    'Cat/Camel': 'cat-camel.png',
+    'Warrior Lunge Stretch — 2×20-25s per side': 'warrior-lunge-stretch.png',
+    'Bird Dogs': 'bird-dogs.png',
+    'Two-Legged Glute Bridges': 'glute-bridges.png',
+    'Front-to-Back Hip Swings': 'hip-swings-front-back.png',
+    'Frontal Plane Hip Swings': 'hip-swings-side.png',
+    'Dynamic Calf Stretch': 'dynamic-calf-stretch.png',
+    'Scapular Push Ups': 'scapular-push-ups.png',
+    'Broomstick Dislocations': 'broomstick-dislocations.png',
+    'Shoulder Circles (little to big)': 'shoulder-circles.png',
+    'Wall Slides': 'wall-slides.png',
+    'Reach-Roll-Lift': 'reach-roll-lift.png',
+    'Dynamic Blackburns': 'dynamic-blackburns.png'
+  },
+
   // Tap-to-learn guides, keyed by the exact names in warmups above
   warmupInfo: {
     'Cat/Camel': {
