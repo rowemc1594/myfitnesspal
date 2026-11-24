@@ -367,10 +367,13 @@ const PLAN = {
   // Suggested time for each meal slot, in the order you eat them (1st, 2nd, …)
   mealTimes: ['7:00 AM', '10:00 AM', '12:00 PM', '2:30 PM', '6:00 PM'],
 
+  // Macro numbers on each meal are estimates from standard nutrition data, using the
+  // first option for "OR" items. Daily goal = all non-optional items in the day's plan.
   meals: {
     training: [
       {
         id: 'tm1', label: 'Meal 1',
+        macros: [[157,24,5],[152,5,3],[90,1,0]], // per item: [cal, protein g, fat g] (estimates)
         items: [
           '1 whole egg + 5 egg whites',
           '40g oats (dry)',
@@ -379,6 +382,7 @@ const PLAN = {
       },
       {
         id: 'tm2', label: 'Meal 2',
+        macros: [[178,23,5],[120,3,1],[81,3,7]], // per item: [cal, protein g, fat g] (estimates)
         items: [
           '220g cottage cheese',
           'Rice cake up to 120 cal',
@@ -387,6 +391,7 @@ const PLAN = {
       },
       {
         id: 'tm3', label: 'Meal 3',
+        macros: [[198,37,4],[120,4,3],[89,6,7],[25,2,0]], // per item: [cal, protein g, fat g] (estimates)
         items: [
           '120g chicken breast OR 174g tuna (cooked weight)',
           'Tortillas up to 120 cal',
@@ -396,6 +401,7 @@ const PLAN = {
       },
       {
         id: 'tm4', label: 'Meal 4 (Post-Workout)',
+        macros: [[175,35,2],[250,4,1]], // per item: [cal, protein g, fat g] (estimates)
         postWorkout: true,
         items: [
           '45g protein powder',
@@ -404,6 +410,7 @@ const PLAN = {
       },
       {
         id: 'tm5', label: 'Meal 5',
+        macros: [[220,33,9],[116,3,0],[94,3,8],[25,2,0],[40,0,5]], // per item: [cal, protein g, fat g] (estimates)
         items: [
           '110g top sirloin OR 116g 95% lean ground beef (cooked weight)',
           '150g russet potato (dry weight)',
@@ -416,6 +423,7 @@ const PLAN = {
     nonTraining: [
       {
         id: 'ntm1', label: 'Meal 1',
+        macros: [[195,24,10],[60,4,5],[43,0,5],[25,2,0]], // per item: [cal, protein g, fat g] (estimates)
         items: [
           '2 whole eggs + 3 whites',
           '15g full-fat cheese',
@@ -425,6 +433,7 @@ const PLAN = {
       },
       {
         id: 'ntm2', label: 'Meal 2',
+        macros: [[175,35,2],[120,3,1],[81,3,7]], // per item: [cal, protein g, fat g] (estimates)
         items: [
           '45g protein powder',
           'Rice cake up to 120 cal',
@@ -433,6 +442,7 @@ const PLAN = {
       },
       {
         id: 'ntm3', label: 'Meal 3',
+        macros: [[190,36,4],[138,5,2],[90,1,0],[25,2,0]], // per item: [cal, protein g, fat g] (estimates)
         items: [
           '115g chicken breast OR 194g shrimp (cooked weight)',
           '115g quinoa (cooked)',
@@ -442,6 +452,7 @@ const PLAN = {
       },
       {
         id: 'ntm4', label: 'Meal 4',
+        macros: [[220,33,9],[121,8,10],[80,1,7],[25,2,0]], // per item: [cal, protein g, fat g] (estimates)
         items: [
           '110g top sirloin OR 122g pork tenderloin (cooked weight)',
           '30g full-fat cheese',
@@ -451,6 +462,7 @@ const PLAN = {
       },
       {
         id: 'ntm5', label: 'Meal 5',
+        macros: [[162,21,5],[78,16,1],[147,6,13],[40,0,5]], // per item: [cal, protein g, fat g] (estimates)
         items: [
           '200g cottage cheese',
           '20g protein powder',

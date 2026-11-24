@@ -39,6 +39,26 @@ App.renderMealChecklist = function(el, ds, { allowReorder = false, collapsible =
     const doneCount = meals.filter(isDone).length;
     const nextIdx = meals.findIndex(m => !isDone(m));
 
+    // Macros: eaten = ticked items; goal = every non-optional item in today's plan
+    const eaten = [0, 0, 0], goal = [0, 0, 0];
+    meals.forEach(meal => (meal.macros || []).forEach((m, i) => {
+      const t = ticks(meal.id);
+      for (let k = 0; k < 3; k++) {
+        if (!isOptional(meal.items[i])) goal[k] += m[k];
+        if (t[i]) eaten[k] += m[k];
+      }
+    }));
+    const mac = document.createElement('div');
+    mac.className = 'card macro-card';
+    mac.innerHTML = `<div class="card-title">Today's macros <span class="text-sm text-muted" style="text-transform:none;letter-spacing:0">· estimated</span></div>
+      <div class="macro-grid">${[['Calories', ''], ['Protein', 'g'], ['Fat', 'g']].map(([name, u], k) => `
+        <div class="macro">
+          <div class="macro-name">${name}</div>
+          <div class="macro-val"><strong>${eaten[k]}</strong><span class="text-muted"> / ${goal[k]}${u}</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(100, goal[k] ? eaten[k] / goal[k] * 100 : 0)}%"></div></div>
+        </div>`).join('')}</div>`;
+    el.appendChild(mac);
+
     const open = !collapsible || !!App._mealsOpen;
     const hdr = document.createElement(collapsible ? 'button' : 'div');
     hdr.className = 'card' + (collapsible ? ' meal-summary' : '');

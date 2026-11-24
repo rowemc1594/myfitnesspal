@@ -342,3 +342,7 @@ select {
   background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
   color: var(--text); font-size: 1rem; padding: 8px 12px; width: 100%;
 }
+.macro-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.macro-name { font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; color: var(--text2); }
+.macro-val { font-size: .95rem; margin: 2px 0 6px; white-space: nowrap; }
+.macro-val strong { font-size: 1.15rem; }
