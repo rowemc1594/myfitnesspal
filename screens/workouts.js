@@ -166,6 +166,28 @@ App.screens.workouts = function(container) {
     return { text, sets };
   }
 
+  function showTempo(ex) {
+    const [down, pause, up] = ex.tempo.split('-').map(Number);
+    const secs = n => n === 1 ? '1 second' : `${n} seconds`;
+    const perRep = down + pause + up;
+    const dur = t => t < 90 ? `${t} seconds` : `${Math.floor(t / 60)} min ${t % 60} s`;
+    const reps = (repTargets(ex) || [])[0];
+    const phase = (n, name, what) => `
+      <div class="tempo-phase">
+        <div class="tempo-num">${n}</div>
+        <div><div style="font-weight:700">${name}</div><div class="text-sm text-muted">${what}</div></div>
+      </div>`;
+    App.showModal(`<h2>Tempo ${ex.tempo}</h2>
+      <div class="text-sm text-muted" style="margin:4px 0 12px">${ex.label.replace(/^[A-Z]\d?\s+/, '')}</div>
+      ${phase(down, 'Lower', `${secs(down)} on the way down (the stretch). Control it; don't drop.`)}
+      ${phase(pause, 'Pause at the bottom', pause ? `Hold ${secs(pause)} in the stretched position.` : 'No pause. Turn around smoothly without bouncing.')}
+      ${phase(up, 'Lift', `${secs(up)} on the way up. Drive it hard with good form.`)}
+      <div class="card mt12" style="margin-bottom:0">
+        <div class="text-sm">One rep takes about <strong>${perRep} seconds</strong>${reps ? `, so a set of ${reps} is about <strong>${dur(perRep * reps)}</strong> under tension` : ''}.</div>
+      </div>
+      <p class="text-sm text-muted mt12">Tempo is always three numbers: lower, pause at the bottom, lift.</p>`);
+  }
+
   function buildExerciseEl(ex) {
     const wrap = document.createElement('div');
     wrap.className = 'exercise-card';
@@ -183,7 +205,7 @@ App.screens.workouts = function(container) {
       </div>
       <div class="exercise-meta">
         ${ex.sets}×${ex.reps}
-        ${ex.tempo ? ` · <strong>${ex.tempo}</strong>` : ''}
+        ${ex.tempo ? ` · <button class="tempo-chip" aria-label="Explain tempo ${ex.tempo}">${ex.tempo}</button>` : ''}
         ${ex.rest && ex.rest !== 'none' ? ` · rest ${ex.rest}` : ''}
       </div>
       ${ex.note ? `<div class="text-sm text-muted" style="margin-bottom:8px">${ex.note}</div>` : ''}
@@ -197,6 +219,9 @@ App.screens.workouts = function(container) {
       </div>
       <div class="set-rows" id="sets-${ex.id}"></div>
     `;
+
+    const tempoBtn = wrap.querySelector('.tempo-chip');
+    if (tempoBtn) tempoBtn.onclick = () => showTempo(ex);
 
     const setRows = wrap.querySelector(`#sets-${ex.id}`);
     const fillers = [];
