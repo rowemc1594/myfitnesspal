@@ -385,3 +385,4 @@ select {
 .timer-slot.soon .ti-time { color: #5dade2; }
 .timer-slot.soon .ti-fill { background: #3498db; }
 #rest-timer-bar.soon { border-color: #3498db; background: #1b3a52; }
+#build-tag { font-size: .7rem; color: var(--text2); opacity: .9; margin-left: 6px; margin-right: auto; align-self: center; font-weight: 400; }

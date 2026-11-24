@@ -1,4 +1,6 @@
 'use strict';
+// Build number shown in the header. Bump together with CACHE_NAME in sw.js (tracker-v<BUILD>).
+const BUILD = 46;
 /* ── Storage ────────────────────────────────────────────────── */
 const STORAGE_KEY = 'trackerData_v1';
 const BACKUP_KEY  = 'trackerData_backup';
@@ -240,6 +242,10 @@ const App = {
       btn.addEventListener('click', () => this.navigate(btn.dataset.screen));
     });
 
+    const bt = document.createElement('span');
+    bt.id = 'build-tag';
+    bt.textContent = 'b' + BUILD;
+    document.getElementById('screen-title').after(bt);
     this.navigate('today');
     // Timer: refresh pill on scroll; re-acquire wake lock when returning to the app
     document.getElementById('screen-container').addEventListener('scroll', () => this.timer.state && this._renderTimerPill(), { passive: true });

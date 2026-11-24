@@ -2,7 +2,7 @@
 
 Ideas from use, compared to the current app, then planned and shipped in small steps.
 
-**Safety rules for every change:** don't lose stored data (schema changes go through a migration in `app.js`, with a backup taken first); bump `CACHE_NAME` in `sw.js` on every release; check old data still loads before pushing; never change the repo name or URL.
+**Safety rules for every change:** don't lose stored data (schema changes go through a migration in `app.js`, with a backup taken first); bump `CACHE_NAME` in `sw.js` and `BUILD` in `app.js` (same number) on every release; check old data still loads before pushing; never change the repo name or URL.
 
 ## Done
 
@@ -48,6 +48,7 @@ Ideas from use, compared to the current app, then planned and shipped in small s
 | 32a | _(bug)_ Countdown beeps out of step, some missing | Each beep was its own play() call; phones add variable delay and drop rapid replays (heard 3 of 5). Screen updated every 250 ms. | The last 5 s is **one audio clip** (5 ticks exactly 1 s apart, then Go), started at 0:05. While it plays, the clock is driven by the clip's position, so numbers change with each beep. Updates every 100 ms. +15 or Skip stops the clip. **Sound ▶** plays this same clip. | None |
 | 32b | _(bug)_ Timer bar stepped once a second | Bar width came from whole seconds left | Bar uses exact milliseconds left, updated 10×/s with a short linear transition, so it drains smoothly in step with the clock. | None |
 | 32c | _(bug)_ Countdown still out of step on iPhone | iPhones (esp. home-screen apps) start audio a few hundred ms late; the clock ran on its own until audio began, then jumped | Countdown clip now opens with 1 s of silence and starts at 0:06, so the start-up delay is absorbed before the first beep; the clock locks to the clip once it's playing. Tested with a simulated 400 ms delay: digits change within 0.03 s of each beep. | None |
+| 33 | Build number in the header | No way to tell which version the phone is running | Small grey "b46" next to the screen title. It's `BUILD` in `app.js`, bumped together with `CACHE_NAME` (`tracker-v46`) in `sw.js` every release. README updated. | None |
 
 ## Planned
 

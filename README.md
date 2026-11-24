@@ -30,7 +30,7 @@ History screen → **Export** downloads a JSON file. **Import** restores one (yo
 
 ## Updating the app
 
-After changing any app file, bump `CACHE_NAME` in `sw.js` (e.g. `tracker-v2`) so phones fetch the new version. The service worker only manages cached app files; it never touches your data.
+After changing any app file, bump `CACHE_NAME` in `sw.js` (e.g. `tracker-v47`) **and** `BUILD` in `app.js` to the same number, so phones fetch the new version and the header shows it (e.g. "b47"). The service worker only manages cached app files; it never touches your data.
 
 ## Changing the data format
 
