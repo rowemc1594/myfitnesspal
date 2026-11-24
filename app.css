@@ -353,3 +353,4 @@ select {
 .field { display: block; font-size: .75rem; color: var(--text2); margin-top: 8px; }
 .field input { display: block; width: 100%; margin-top: 4px; box-sizing: border-box; }
 .xf-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.armed { background: var(--accent) !important; color: #fff !important; border-radius: 999px; width: auto !important; padding: 0 12px !important; font-size: .8rem; font-weight: 600; }

@@ -255,10 +255,10 @@ App.screens.workouts = function(container) {
     const setRows = wrap.querySelector(`#sets-${ex.id}`);
     const fillers = [];
     const clearers = [];
-    wrap.querySelector('.clear-sets').onclick = () => {
+    wrap.querySelector('.clear-sets').onclick = e => {
       const ticked = wrap.querySelectorAll('.set-done-btn.done').length;
-      if (ticked && !confirm(`Clear all sets, including ${ticked} ticked set${ticked > 1 ? 's' : ''}?`)) return;
-      clearers.forEach(c => c());
+      const run = () => clearers.forEach(c => c());
+      if (ticked) App.confirmTap(e.currentTarget, 'Sure?', run); else run();
     };
     const tBtn = wrap.querySelector('.target-line');
     if (tBtn) tBtn.onclick = () => {
