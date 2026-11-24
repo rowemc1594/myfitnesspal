@@ -124,27 +124,38 @@ App.screens.workouts = function(container) {
     return m ? Array(n).fill(parseInt(m[2] || m[1])) : null;
   }
 
-  // Simple progression: every set hit its rep goal last time -> add 5; otherwise same weight, chase the reps
+  // Simple progression: every set hit its rep goal last time -> add 5; otherwise same weight, chase the reps.
+  // Returns { text, sets: [{weight, reps}] } so the target can fill the set rows.
   function targetFor(ex, last) {
     const goals = repTargets(ex);
     if (!goals) return null;
     const repsText = goals.every(g => g === goals[0]) ? String(goals[0]) : goals.join('/');
-    if (!last) return `First time: pick a weight you can do for ${repsText} with good form.`;
-    const sets = goals.map((_, i) => last.sets[i]);
-    const weights = sets.map(s => s && parseFloat(s.weight)).filter(w => !isNaN(w) && w > 0);
-    const allHit = sets.every((s, i) => s && parseInt(s.reps) >= goals[i]);
-    if (!weights.length) return `Hit ${repsText} reps on every set.`;
+    const repsOnly = goals.map(g => ({ weight: '', reps: String(g) }));
+    if (!last) return { text: `First time: pick a weight you can do for ${repsText} with good form.`, sets: repsOnly };
+    const prev = goals.map((_, i) => last.sets[i]);
+    const num = s => { const w = s && parseFloat(s.weight); return !isNaN(w) && w > 0 ? w : null; };
+    const weights = prev.map(num).filter(w => w !== null);
+    const allHit = prev.every((s, i) => s && parseInt(s.reps) >= goals[i]);
+    if (!weights.length) return { text: `Hit ${repsText} reps on every set.`, sets: repsOnly };
     // Straight sets aim at last time's heaviest weight; pyramids (per-set rep goals) keep each set's weight
     const straight = goals.every(g => g === goals[0]);
     const top = Math.max(...weights);
+    const add = allHit ? 5 : 0;
+    const sets = goals.map((g, i) => {
+      const base = straight ? top : (num(prev[i]) ?? top);
+      return { weight: String(base + add), reps: String(g) };
+    });
+    let text;
     if (allHit) {
-      return straight
+      text = straight
         ? `<strong>${top + 5} × ${repsText}</strong> <span class="text-green">(+5)</span>. You hit every set last time.`
         : `<strong>+5 on each set</strong>, ${repsText} reps. You hit every set last time.`;
+    } else {
+      text = straight
+        ? `<strong>${top} × ${repsText}</strong> on all sets, then go up.`
+        : `Same weights as last time; hit <strong>${repsText}</strong> on every set, then go up.`;
     }
-    return straight
-      ? `<strong>${top} × ${repsText}</strong> on all sets, then go up.`
-      : `Same weights as last time; hit <strong>${repsText}</strong> on every set, then go up.`;
+    return { text, sets };
   }
 
   function buildExerciseEl(ex) {
@@ -168,7 +179,10 @@ App.screens.workouts = function(container) {
         ${ex.rest && ex.rest !== 'none' ? ` · rest ${ex.rest}` : ''}
       </div>
       ${ex.note ? `<div class="text-sm text-muted" style="margin-bottom:8px">${ex.note}</div>` : ''}
-      ${target ? `<div class="target-line"><span class="target-tag">Target</span> ${target}</div>` : ''}
+      ${target ? `<button class="target-line" aria-label="Fill sets with target">
+          <span><span class="target-tag">Target</span> ${target.text}</span>
+          <span class="target-fill">Tap to fill sets</span>
+        </button>` : ''}
       ${lastDate ? `<div class="text-sm text-muted">Last session: ${lastDate} · tap a "Last" value to copy it</div>` : ''}
       <div class="set-grid set-head">
         <span>Set</span><span>Last</span><span>This week</span><span></span>
@@ -177,12 +191,18 @@ App.screens.workouts = function(container) {
     `;
 
     const setRows = wrap.querySelector(`#sets-${ex.id}`);
+    const fillers = [];
+    const tBtn = wrap.querySelector('.target-line');
+    if (tBtn) tBtn.onclick = () => {
+      const filled = fillers.filter(f => f()).length;
+      App.toast(filled ? `Filled ${filled} set${filled > 1 ? 's' : ''}. Tick ✓ when done, or edit first` : 'All sets already ticked');
+    };
     for (let s = 0; s < numSets; s++) {
       const key = `${todayS}_${ex.id}_${s}`;
       const saved = Store.get().setLogs[key] || {};
       const prev = last && last.sets[s];
       const row = document.createElement('div');
-      row.className = 'set-row set-grid';
+      row.className = 'set-row set-grid' + (saved.done ? ' is-done' : '');
       row.innerHTML = `
         <span class="set-num">${s+1}</span>
         ${prev
@@ -199,6 +219,14 @@ App.screens.workouts = function(container) {
       const doneBtn = row.querySelector('.set-done-btn');
       const copy = row.querySelector('button.last-cell');
       if (copy) copy.onclick = () => { wInput.value = prev.weight || ''; rInput.value = prev.reps || ''; saveSet(); };
+      // Target fills only sets not yet ticked; returns whether it filled this one
+      fillers.push(() => {
+        if (doneBtn.classList.contains('done') || !target.sets[s]) return false;
+        wInput.value = target.sets[s].weight || wInput.value;
+        rInput.value = target.sets[s].reps;
+        saveSet();
+        return true;
+      });
 
       function saveSet() {
         Store.set(d => {
@@ -210,6 +238,7 @@ App.screens.workouts = function(container) {
       doneBtn.addEventListener('click', () => {
         const nowDone = !doneBtn.classList.contains('done');
         doneBtn.classList.toggle('done', nowDone);
+        row.classList.toggle('is-done', nowDone);
         saveSet();
         if (nowDone && ex.rest && ex.rest !== 'none') {
           App.startRestTimer(App.parseRestSeconds(ex.rest));
