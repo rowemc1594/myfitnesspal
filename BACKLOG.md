@@ -18,6 +18,7 @@ Ideas from use, compared to the current app, then planned and shipped in small s
 | 6 | Today should hold everything for the day, including meals | Today had week strip, workout and supplements/water; meals were only on the Meals tab | Today's meal checklist now sits on Today, between the workout and supplements/water. It's the same code as the Meals tab, so ticks show in both. The Meals tab keeps Reorder and the diet notes. | None |
 | 7 | Meals take over Today; collapse them behind the progress card | All 5 meal cards always open on Today | On Today, meals show as one tappable card: "2 of 5 eaten · Up next: Meal 3" plus the progress bar and a chevron. Tap to open the list, tap again to close. Stays open while you tick; collapsed again next launch. The Meals tab is always open. | None |
 | 8 | Show amounts in the daily checklist | Just "Fish oil", "Protein powder", "2 dill pickles" | Each item shows its amount underneath, matching the day type: fish oil 1 tsp (Meal 5); protein 45 g (Meal 4) on training days, 65 g (45 g Meal 2 + 20 g Meal 5) otherwise; 2 pickles. Amounts live in `plan.js` next to the meals. | None. Ticks keyed the same. |
+| 9 | Today's Plan follows the weekday; missed workouts offered as catch-ups | No fixed schedule; "Start" suggested the first workout not yet done this week (so a missed Day 1 kept being suggested). **Changes a rule in the original brief.** | Weekly schedule Mon Day 1, Tue Day 2, Wed Dumbbell Complex, Thu Day 3, Fri Day 4, Sat/Sun Rest (`PLAN.schedule`). The big button starts today's scheduled workout. Earlier scheduled workouts not done this week appear under "Missed this week" with "Do Day X instead". "Pick a different workout ›" allows anything. If today's workout was already done earlier in the week, the first missed one becomes the default. Upcoming days show their scheduled workout in italics on the week strip. | None. Uses existing `workoutLogs`. |
 
 ## Planned
 
@@ -25,4 +26,5 @@ _(empty)_
 
 ## Ideas (not yet planned)
 
+- Let the weekly schedule be edited in the app (currently fixed in `plan.js`). Would need a `settings.schedule` migration.
 - Do the workout on Today too (log sets inline instead of switching to the Workouts tab). Suggested earlier; fits #6.

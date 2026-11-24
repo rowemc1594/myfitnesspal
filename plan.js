@@ -182,6 +182,10 @@ const PLAN = {
 
   workoutOrder: ['Day 1', 'Day 2', 'Dumbbell Complex', 'Day 3', 'Day 4'],
 
+  // Default workout per weekday, Monday first
+  schedule: ['Day 1', 'Day 2', 'Dumbbell Complex', 'Day 3', 'Day 4', 'Rest', 'Rest'],
+  shortNames: { 'Day 1': 'Day 1', 'Day 2': 'Day 2', 'Dumbbell Complex': 'DB Cx', 'Day 3': 'Day 3', 'Day 4': 'Day 4', 'Rest': 'Rest' },
+
   warmups: {
     lower: [
       'Cat/Camel',

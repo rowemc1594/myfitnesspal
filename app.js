@@ -122,10 +122,6 @@ function completedCountThisWeek(monday) {
   const entries = workoutsThisWeek(monday);
   return entries.filter(w => w && w !== 'Rest').length;
 }
-function nextWorkout(monday) {
-  const done = new Set(workoutsThisWeek(monday).filter(Boolean));
-  return PLAN.workoutOrder.find(w => !done.has(w)) || null;
-}
 function isTrainingDay(dateStr) {
   const w = Store.get().workoutLogs[dateStr];
   if (!w) return false;

@@ -10,7 +10,8 @@ App.screens.today = function(container) {
   const stripEl = document.createElement('div');
   stripEl.className = 'card';
   const doneCount = completedCountThisWeek(monday);
-  const nextW = nextWorkout(monday);
+  const todayIdx = days.findIndex(d => fmtDate(d) === todayS);
+  const doneThisWeek = new Set(workoutsThisWeek(monday).filter(w => w && w !== 'Rest'));
 
   stripEl.innerHTML = `
     <div class="card-title">This Week</div>
@@ -22,7 +23,7 @@ App.screens.today = function(container) {
     <div class="progress-bar mt8">
       <div class="progress-fill" style="width:${(doneCount/5)*100}%"></div>
     </div>
-    ${nextW ? `<div class="mt8 text-sm">Up next: <span class="text-accent">${nextW}</span></div>` : '<div class="mt8 text-sm text-green">All workouts done this week!</div>'}
+    ${doneCount >= 5 ? '<div class="mt8 text-sm text-green">All workouts done this week!</div>' : ''}
   `;
   container.appendChild(stripEl);
 
@@ -32,13 +33,13 @@ App.screens.today = function(container) {
     const isToday = ds === todayS;
     const logged = logs[ds];
     const isDone = logged && logged !== 'Rest';
-    const isRest = logged === 'Rest';
+    const planned = !logged && i >= todayIdx ? PLAN.schedule[i] : null;
     const chip = document.createElement('div');
     chip.className = 'day-chip' + (isToday ? ' today' : '') + (isDone ? ' done' : '');
     chip.innerHTML = `
       <span class="dc-dow">${DOW[i]}</span>
       <span class="dc-date">${d.getDate()}</span>
-      <span class="dc-label">${logged ? (logged === 'Rest' ? 'Rest' : logged) : '—'}</span>
+      <span class="dc-label${planned ? ' planned' : ''}">${logged ? PLAN.shortNames[logged] : planned ? PLAN.shortNames[planned] : '—'}</span>
     `;
     chip.addEventListener('click', () => openDayPicker(ds, i));
     strip.appendChild(chip);
@@ -65,18 +66,45 @@ App.screens.today = function(container) {
   container.appendChild(suppCard);
 
   function renderTodayWorkout(el, ds, wo) {
-    const training = isTrainingDay(ds);
-    el.innerHTML = `<div class="card-title">Today's Plan</div>`;
+    const dayName = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][todayIdx];
+    const fullName = w => w === 'Rest' ? 'Rest day' : PLAN.workouts[w].label;
+    el.innerHTML = `<div class="card-title">Today's Plan · ${dayName}</div>`;
+
     if (wo) {
-      el.innerHTML += `<div class="row-between"><span class="badge badge-${wo==='Rest'?'green':'red'}">${wo}</span>
+      el.innerHTML += `<div class="row-between"><span class="badge badge-${wo==='Rest'?'green':'red'}">${fullName(wo)}</span>
         <button class="btn btn-secondary btn-sm" id="change-today-btn">Change</button></div>
-        ${wo !== 'Rest' ? `<button class="btn btn-primary btn-full mt12" id="go-workout-btn">Start Workout</button>` : ''}`;
+        ${wo !== 'Rest' ? `<button class="btn btn-primary btn-full mt12" id="go-workout-btn">Open Workout</button>` : ''}`;
     } else {
-      el.innerHTML += `<div class="text-muted text-sm">No workout logged yet</div>
-        <button class="btn btn-primary btn-full mt12" id="log-today-btn">${nextW ? 'Start: ' + nextW : 'Log Workout'}</button>`;
+      // Scheduled workout is the default; earlier scheduled workouts not done this week are offered as catch-ups
+      const scheduled = PLAN.schedule[todayIdx];
+      const missed = PLAN.schedule.slice(0, todayIdx)
+        .filter((w, i, arr) => w !== 'Rest' && !doneThisWeek.has(w) && arr.indexOf(w) === i);
+      let primary = scheduled;
+      let note = '';
+      if (scheduled !== 'Rest' && doneThisWeek.has(scheduled)) {
+        note = `${scheduled} is already done this week.`;
+        primary = missed[0] || PLAN.workoutOrder.find(w => !doneThisWeek.has(w)) || 'Rest';
+      }
+      const catchUps = missed.filter(w => w !== primary);
+
+      el.innerHTML += `
+        ${note ? `<div class="text-sm text-muted" style="margin-bottom:8px">${note}</div>` : ''}
+        <button class="btn btn-primary btn-full" data-start="${primary}">${primary === 'Rest' ? 'Log rest day' : 'Start ' + fullName(primary)}</button>
+        ${catchUps.length ? `<div class="catchup mt12">
+            <div class="text-sm">Missed this week: <strong>${catchUps.map(fullName).join(', ')}</strong></div>
+            <div class="row mt8" style="flex-wrap:wrap">
+              ${catchUps.map(w => `<button class="btn btn-secondary btn-sm" data-start="${w}">Do ${w} instead</button>`).join('')}
+            </div>
+          </div>` : ''}
+        <button class="link-btn mt8" id="pick-other-btn">Pick a different workout ›</button>`;
+
+      el.querySelectorAll('[data-start]').forEach(b => b.addEventListener('click', () => {
+        const w = b.dataset.start;
+        Store.set(d => d.workoutLogs[ds] = w);
+        App.navigate(w === 'Rest' ? 'today' : 'workouts');
+      }));
     }
-    el.querySelectorAll('#log-today-btn').forEach(b => b.addEventListener('click', () => openDayPicker(ds, days.findIndex(d => fmtDate(d)===ds))));
-    el.querySelectorAll('#change-today-btn').forEach(b => b.addEventListener('click', () => openDayPicker(ds, days.findIndex(d => fmtDate(d)===ds))));
+    el.querySelectorAll('#pick-other-btn, #change-today-btn').forEach(b => b.addEventListener('click', () => openDayPicker(ds, todayIdx)));
     el.querySelectorAll('#go-workout-btn').forEach(b => b.addEventListener('click', () => {
       App.navigate('workouts');
     }));
