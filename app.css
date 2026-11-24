@@ -346,3 +346,4 @@ select {
 .macro-name { font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; color: var(--text2); }
 .macro-val { font-size: .95rem; margin: 2px 0 6px; white-space: nowrap; }
 .macro-val strong { font-size: 1.15rem; }
+.meal-macros { font-size: .72rem; font-weight: 400; color: var(--text2); margin-top: 1px; }

@@ -35,6 +35,7 @@ Ideas from use, compared to the current app, then planned and shipped in small s
 | 23 | Suggested time on each meal card | Meals had no times | Top-right of each meal card shows a suggested time: 7:00 AM, 10:00 AM, 12:00 PM, 2:30 PM, 6:00 PM. Times follow the meal's position, so after a Reorder the first meal is still 7:00 AM. Edit them in `PLAN.mealTimes` in `plan.js`. | None |
 | 24 | Close a meal without eating every item | The big circle ticked every item, so you couldn't close a meal you only partly ate | If some items are ticked, the big circle closes the meal as eaten and marks the rest "skipped" (faded). If nothing is ticked, it ticks everything as before. Tap again to clear the meal. | Adds an optional `closed` flag inside that meal's ticks. No migration needed. |
 | 25 | Macro tracker above the meals | No calorie or macro info anywhere | A **Today's macros** card above the meal progress (Today and Meals tabs): calories, protein and fat eaten vs. goal, each with a bar. Eaten counts only ticked items (skipped ones don't count). Goal = every non-optional item in the day's plan (training ≈ 2080 cal / 184 g P / 60 g F). Numbers are **estimates** per item in `plan.js` (`macros: [cal, protein, fat]`, first option for "OR" items); correct them there. | None. Computed from existing meal ticks. |
+| 26 | Each meal's macro goal on its card | Only the daily total was shown | Under each meal's name: its planned total, e.g. "399 cal · 30g P · 8g F" (optional items excluded). Same estimates as #25. | None |
 
 ## Planned
 

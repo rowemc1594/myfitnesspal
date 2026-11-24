@@ -93,6 +93,8 @@ App.renderMealChecklist = function(el, ds, { allowReorder = false, collapsible =
             : `<button class="meal-check" aria-pressed="${done}" aria-label="${done ? 'Unmark' : 'Mark'} ${meal.label} eaten">${CHECK}</button>`}
           <div class="meal-title">
             <div>${meal.label.replace(/ \(Post-Workout\)/, '')}${meal.postWorkout ? ' <span class="badge badge-red">Post-workout</span>' : ''}</div>
+            ${meal.macros ? (() => { const g = [0, 0, 0]; meal.macros.forEach((m, i) => { if (!isOptional(meal.items[i])) for (let k = 0; k < 3; k++) g[k] += m[k]; });
+              return `<div class="meal-macros">${g[0]} cal · ${g[1]}g P · ${g[2]}g F</div>`; })() : ''}
             ${pos === nextIdx && !reordering ? '<div class="text-sm text-accent">Up next</div>' : ''}
           </div>
           ${(PLAN.mealTimes || [])[pos] ? `<div class="meal-time">${PLAN.mealTimes[pos]}</div>` : ''}
