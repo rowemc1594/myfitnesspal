@@ -13,6 +13,7 @@ App.screens.today = function(container) {
   const doneCount = completedCountThisWeek(monday);
   const todayIdx = days.findIndex(d => fmtDate(d) === todayS);
   const doneThisWeek = new Set(workoutsThisWeek(monday).filter(Boolean));
+  const wp = weekPlan(monday);
 
   stripEl.innerHTML = `
     <div class="card-title">This Week</div>
@@ -33,10 +34,11 @@ App.screens.today = function(container) {
     const ds = fmtDate(d);
     const isToday = ds === todayS;
     const done = completedWorkout(ds);
-    const planned = plannedWorkout(ds);
+    const planned = wp.plan[i];
     // Missed: a past day not completed whose planned workout wasn't made up later this week
     const missed = !done && i < todayIdx && planned !== 'Rest' && !doneThisWeek.has(planned);
     const upcoming = !done && i >= todayIdx;
+    const moved = upcoming && planned !== PLAN.schedule[i];
     const label = done ? PLAN.shortNames[done]
       : upcoming || planned === 'Rest' ? PLAN.shortNames[planned]
       : missed ? 'Missed' : '—';
@@ -46,7 +48,7 @@ App.screens.today = function(container) {
     chip.innerHTML = `
       <span class="dc-dow">${DOW[i]}</span>
       <span class="dc-date">${d.getDate()}</span>
-      <span class="dc-label${upcoming ? ' planned' : ''}">${label}</span>
+      <span class="dc-label${upcoming ? ' planned' : ''}${moved ? ' moved' : ''}">${label}</span>
       <span class="dc-mark">${done ? CHECK_SVG : ''}</span>
     `;
     chip.addEventListener('click', () => openDayPicker(ds, i));
@@ -85,18 +87,13 @@ App.screens.today = function(container) {
         <button class="btn btn-secondary btn-full mt12" id="go-workout-btn">View workout</button>
         <button class="link-btn mt8" id="undo-done-btn">Not done? Undo</button>`;
     } else {
-      // Default: what you picked for today, else the weekday's scheduled workout.
-      // Without a pick, earlier missed workouts are offered as catch-ups.
+      // Default comes from the re-flowed week plan. Skipped workouts, and any that no longer fit this week, are offered as catch-ups.
+      const primary = wp.plan[todayIdx];
       const scheduled = PLAN.schedule[todayIdx];
-      const missed = PLAN.schedule.slice(0, todayIdx)
-        .filter((w, i, arr) => w !== 'Rest' && !doneThisWeek.has(w) && arr.indexOf(w) === i);
-      let primary = chosen || scheduled;
-      let note = '';
-      if (!chosen && scheduled !== 'Rest' && doneThisWeek.has(scheduled)) {
-        note = `${scheduled} is already done this week.`;
-        primary = missed[0] || PLAN.workoutOrder.find(w => !doneThisWeek.has(w)) || 'Rest';
-      }
-      const catchUps = chosen ? [] : missed.filter(w => w !== primary);
+      const catchUps = [...(chosen ? [] : wp.skipped), ...wp.unscheduled].filter(w => w !== primary);
+      const note = !chosen && primary !== scheduled
+        ? (doneThisWeek.has(scheduled) ? `${scheduled} is already done this week, so the plan moved up.` : `Your week was re-ordered after a swap.`)
+        : '';
 
       el.innerHTML += `
         ${note ? `<div class="text-sm text-muted" style="margin-bottom:8px">${note}</div>` : ''}
@@ -105,7 +102,7 @@ App.screens.today = function(container) {
           : `<button class="btn btn-primary btn-full" id="start-btn">Start ${fullName(primary)}</button>
              <button class="btn btn-secondary btn-full mt8" id="mark-done-btn">Mark ${primary} done</button>`}
         ${catchUps.length ? `<div class="catchup mt12">
-            <div class="text-sm">Missed this week: <strong>${catchUps.map(fullName).join(', ')}</strong></div>
+            <div class="text-sm">${catchUps.every(w => wp.unscheduled.includes(w)) ? "Doesn't fit in this week's training days" : 'Missed this week'}: <strong>${catchUps.map(fullName).join(', ')}</strong></div>
             <div class="row mt8" style="flex-wrap:wrap">
               ${catchUps.map(w => `<button class="btn btn-secondary btn-sm" data-switch="${w}">Do ${w} instead</button>`).join('')}
             </div>

@@ -120,11 +120,40 @@ function completedWorkout(ds) {
   const w = Store.get().workoutLogs[ds];
   return w && w !== 'Rest' ? w : null;
 }
+// The week's plan, re-flowed around what actually happened:
+// - completed days and days you picked a workout for keep it
+// - past days with nothing done are "skipped": their workout is offered as a catch-up, not slid forward
+// - workouts displaced by a swap (doing/picking something else) slide into the next open training days in program order
+// Returns { plan: [7 workout names], skipped: [...], unscheduled: [...didn't fit this week] }
+function weekPlan(monday) {
+  const days = weekDays(monday).map(fmtDate);
+  const today = todayStr();
+  const ref = days.includes(today) ? days.indexOf(today) : (today > days[6] ? 7 : 0);
+  const picks = Store.get().workoutPlan;
+  const done = days.map(completedWorkout);
+  const doneSet = new Set(done.filter(Boolean));
+  const taken = new Set(doneSet);
+  const skipped = [];
+  const plan = days.map((ds, i) => {
+    if (done[i]) return done[i];
+    if (i >= ref) {
+      if (picks[ds]) { taken.add(picks[ds]); return picks[ds]; }
+      return null;
+    }
+    const w = picks[ds] || PLAN.schedule[i];
+    if (w !== 'Rest' && !doneSet.has(w)) { skipped.push(w); taken.add(w); }
+    return w;
+  });
+  const queue = PLAN.workoutOrder.filter(w => !taken.has(w));
+  plan.forEach((w, i) => {
+    if (w) return;
+    plan[i] = PLAN.schedule[i] === 'Rest' ? 'Rest' : (queue.shift() || 'Rest');
+  });
+  return { plan, skipped: [...new Set(skipped)], unscheduled: queue };
+}
 function plannedWorkout(ds) {
-  const p = Store.get().workoutPlan[ds];
-  if (p) return p;
-  const dow = (parseDate(ds).getDay() + 6) % 7;
-  return PLAN.schedule[dow];
+  const d = parseDate(ds);
+  return weekPlan(mondayOfWeek(d)).plan[(d.getDay() + 6) % 7];
 }
 function setPlanned(ds, w) {
   Store.set(d => d.workoutPlan[ds] = w);
