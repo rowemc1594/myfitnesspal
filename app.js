@@ -1,6 +1,6 @@
 'use strict';
 // Build number shown in the header. Bump together with CACHE_NAME in sw.js (tracker-v<BUILD>).
-const BUILD = 54;
+const BUILD = 55;
 /* ── Storage ────────────────────────────────────────────────── */
 const STORAGE_KEY = 'trackerData_v1';
 const BACKUP_KEY  = 'trackerData_backup';
@@ -276,7 +276,8 @@ const App = {
 
     // Nav
     document.querySelectorAll('.nav-btn').forEach(btn => {
-      btn.addEventListener('click', () => this.navigate(btn.dataset.screen));
+      // Tapping a tab always goes to today (leaves any past day being caught up on)
+      btn.addEventListener('click', () => { this.viewDate = null; this.navigate(btn.dataset.screen); });
     });
 
     const bt = document.createElement('span');

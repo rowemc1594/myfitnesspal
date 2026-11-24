@@ -6,6 +6,21 @@ App.screens.today = function(container) {
   const days = weekDays(monday);
   const CHECK_SVG = '<svg class="icon" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
   const fullName = w => w === 'Rest' ? 'Rest day' : PLAN.workouts[w].label;
+  // Viewing a past day (tapped on the week strip) to catch up on logging; otherwise today
+  const viewS = App.viewDate && App.viewDate < todayS ? App.viewDate : todayS;
+  const viewing = viewS !== todayS;
+  const viewLabel = parseDate(viewS).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
+  if (viewing) {
+    document.getElementById('screen-title').textContent = parseDate(viewS).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    const vb = document.createElement('div');
+    vb.className = 'card past-banner row-between';
+    vb.innerHTML = `<div><div class="card-title" style="margin-bottom:2px">Catching up</div>
+        <div style="font-weight:700">${viewLabel}</div>
+        <div class="text-sm text-muted">Log the workout, meals, checklist and water for this day.</div></div>
+      <button class="btn btn-secondary btn-sm" id="back-today-btn">Today ›</button>`;
+    container.appendChild(vb);
+    vb.querySelector('#back-today-btn').onclick = () => { App.viewDate = null; App.navigate('today'); };
+  }
 
   // ── Week strip ──
   const stripEl = document.createElement('div');
@@ -44,7 +59,7 @@ App.screens.today = function(container) {
       : upcoming || planned === 'Rest' ? PLAN.shortNames[planned]
       : skippedDay ? 'Skipped' : missed ? 'Missed' : '—';
     const chip = document.createElement('div');
-    chip.className = 'day-chip' + (isToday ? ' today' : '') + (done ? ' done' : '') + (missed ? ' missed' : '') + (skippedDay ? ' skipped' : '');
+    chip.className = 'day-chip' + (isToday ? ' today' : '') + (viewing && ds === viewS ? ' viewing' : '') + (done ? ' done' : '') + (missed ? ' missed' : '') + (skippedDay ? ' skipped' : '');
     chip.setAttribute('aria-label', `${DOW[i]} ${d.getDate()}: ${done ? done + ', completed' : missed ? planned + ', missed' : planned + ', planned'}`);
     chip.innerHTML = `
       <span class="dc-dow">${DOW[i]}</span>
@@ -53,8 +68,10 @@ App.screens.today = function(container) {
       <span class="dc-mark">${done ? CHECK_SVG : ''}</span>
     `;
     // Past days open the workout to log what you did; today and future days pick a workout
+    // Past days open that whole day to catch up on logging; today returns; future days pick a workout
     chip.addEventListener('click', () => {
-      if (i < todayIdx) { App._workoutDate = ds; App.navigate('workouts'); }
+      if (i < todayIdx) { App.viewDate = ds; App.navigate('today'); }
+      else if (isToday) { App.viewDate = null; App.navigate('today'); }
       else openDayPicker(ds, i);
     });
     strip.appendChild(chip);
@@ -64,22 +81,23 @@ App.screens.today = function(container) {
   const wCard = document.createElement('div');
   wCard.className = 'card';
   wCard.id = 'today-workout-card';
-  renderTodayWorkout(wCard, todayS);
+  renderTodayWorkout(wCard, viewS);
   container.appendChild(wCard);
 
   // ── Meals ──
   const mealsEl = document.createElement('div');
   container.appendChild(mealsEl);
-  App.renderMealChecklist(mealsEl, todayS, { collapsible: true });
+  App.renderMealChecklist(mealsEl, viewS, { collapsible: !viewing }); // open when catching up
 
   // ── Supplements/water quick summary ──
   const suppCard = document.createElement('div');
   suppCard.className = 'card';
   suppCard.id = 'today-supp-card';
-  renderTodaySupps(suppCard, todayS);
+  renderTodaySupps(suppCard, viewS);
   container.appendChild(suppCard);
 
   function renderTodayWorkout(el, ds) {
+    if (viewing) return renderPastWorkout(el, ds);
     const dayName = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][todayIdx];
     el.innerHTML = `<div class="card-title">Today's Plan · ${dayName}</div>`;
     const done = completedWorkout(ds);
@@ -118,6 +136,37 @@ App.screens.today = function(container) {
     }
     el.querySelectorAll('#pick-other-btn').forEach(b => b.onclick = () => openDayPicker(ds, todayIdx));
     el.querySelectorAll('#go-workout-btn').forEach(b => b.onclick = () => App.navigate('workouts'));
+    el.querySelectorAll('#undo-done-btn').forEach(b => b.onclick = () => { setCompleted(ds, null); App.navigate('today'); });
+  }
+
+  // Past day: log the workout you did (or should have), mark it skipped, or pick a different one
+  function renderPastWorkout(el, ds) {
+    const done = completedWorkout(ds);
+    const planned = plannedWorkout(ds);
+    const skippedDay = !!(Store.get().skippedDays || {})[ds];
+    const openWorkout = () => { App._workoutDate = ds; App.navigate('workouts'); };
+    el.innerHTML = `<div class="card-title">Workout · ${parseDate(ds).toLocaleDateString(undefined, { weekday: 'long' })}</div>`;
+    if (done) {
+      el.innerHTML += `<div class="row" style="gap:10px"><span class="done-pill">${CHECK_SVG}</span>
+          <div><div style="font-weight:700">${fullName(done)}</div><div class="text-sm text-green">Completed</div></div></div>
+        <button class="btn btn-secondary btn-full mt12" id="open-wo">View or edit numbers</button>
+        <button class="link-btn mt8" id="undo-done-btn">Not done? Undo</button>`;
+    } else if (skippedDay) {
+      el.innerHTML += `<div style="font-weight:700">Skipped</div><div class="text-sm text-muted">No workout this day.</div>
+        <button class="link-btn mt8" id="unskip">Undo skip</button>`;
+    } else if (planned === 'Rest') {
+      el.innerHTML += `<div style="font-weight:700">Rest day</div>
+        <button class="link-btn mt8" id="open-wo">Trained anyway? Log it ›</button>`;
+    } else {
+      el.innerHTML += `<button class="btn btn-primary btn-full" id="open-wo">Log ${fullName(planned)}</button>
+        <div class="row mt8" style="gap:8px">
+          <button class="btn btn-secondary btn-sm" id="skip-day" style="flex:1">Skipped · no workout</button>
+          <button class="btn btn-secondary btn-sm" id="open-other" style="flex:1">Did a different one</button>
+        </div>`;
+    }
+    el.querySelectorAll('#open-wo, #open-other').forEach(b => b.onclick = openWorkout);
+    el.querySelectorAll('#skip-day').forEach(b => b.onclick = () => { setSkipped(ds, true); App.navigate('today'); });
+    el.querySelectorAll('#unskip').forEach(b => b.onclick = () => { setSkipped(ds, false); App.navigate('today'); });
     el.querySelectorAll('#undo-done-btn').forEach(b => b.onclick = () => { setCompleted(ds, null); App.navigate('today'); });
   }
 

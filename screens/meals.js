@@ -52,7 +52,7 @@ App.renderMealChecklist = function(el, ds, { allowReorder = false, collapsible =
     extras.forEach(x => { eaten[0] += x.cal || 0; eaten[1] += x.p || 0; eaten[2] += x.f || 0; });
     const mac = document.createElement('div');
     mac.className = 'card macro-card';
-    mac.innerHTML = `<div class="card-title">Today's macros <span class="text-sm text-muted" style="text-transform:none;letter-spacing:0">· estimated</span></div>
+    mac.innerHTML = `<div class="card-title">${ds === todayStr() ? "Today's macros" : 'Macros'} <span class="text-sm text-muted" style="text-transform:none;letter-spacing:0">· estimated</span></div>
       <div class="macro-grid">${[['Calories', ''], ['Protein', 'g'], ['Fat', 'g']].map(([name, u], k) => `
         <div class="macro">
           <div class="macro-name">${name}</div>

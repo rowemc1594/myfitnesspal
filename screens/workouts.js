@@ -23,10 +23,10 @@ App.screens.workouts = function(container) {
         ${done ? '' : skippedDay
           ? '<button class="btn btn-secondary btn-sm" id="unskip-btn">Undo skip</button>'
           : '<button class="btn btn-secondary btn-sm" id="skip-btn">Skipped · no workout</button>'}
-        <button class="btn btn-secondary btn-sm" id="back-today-btn">Back to today</button>
+        <button class="btn btn-secondary btn-sm" id="back-today-btn">Back to ${parseDate(dayS).toLocaleDateString(undefined, { weekday: 'long' })}</button>
       </div>`;
     container.appendChild(pb);
-    const back = () => App.navigate('today');
+    const back = () => { App.viewDate = dayS; App.navigate('today'); };
     pb.querySelector('#back-today-btn').onclick = back;
     const sk = pb.querySelector('#skip-btn');
     if (sk) sk.onclick = () => { setSkipped(dayS, true); App.toast(`${dayLabel}: skipped`); back(); };
@@ -85,6 +85,7 @@ App.screens.workouts = function(container) {
       setCompleted(dayS, name);
       App.timer.stop();
       App.toast(name + ' completed');
+      App.viewDate = isPast ? dayS : null;
       App.navigate('today');
     };
   }
@@ -101,7 +102,7 @@ App.screens.workouts = function(container) {
          <div class="text-sm text-muted mt8">Marks ${name} completed for ${isPast ? dayLabel : 'today'}.</div>`;
     workoutContainer.appendChild(card);
     const fin = card.querySelector('#finish-btn');
-    if (fin) fin.onclick = () => { setCompleted(dayS, name); App.toast(name + ' completed'); App.navigate('today'); };
+    if (fin) fin.onclick = () => { setCompleted(dayS, name); App.toast(name + ' completed'); App.viewDate = isPast ? dayS : null; App.navigate('today'); };
 
     const undo = card.querySelector('#undo-finish-btn');
     if (undo) undo.onclick = () => { setCompleted(dayS, null); show(name); };
