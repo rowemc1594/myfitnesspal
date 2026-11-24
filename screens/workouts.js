@@ -62,8 +62,13 @@ App.screens.workouts = function(container) {
     if (plan.warmup) {
       const wuCard = document.createElement('div');
       wuCard.className = 'card';
-      wuCard.innerHTML = `<div class="card-title">Warm-Up <span style="text-transform:none;letter-spacing:0">· tap any for how-to</span></div>
-        ${PLAN.warmups[plan.warmup].map((w, i) => {
+      const moves = PLAN.warmups[plan.warmup];
+      const open = !Store.get().settings.warmupCollapsed;
+      wuCard.innerHTML = `<button class="section-toggle" aria-expanded="${open}">
+          <span class="card-title" style="margin:0">Warm-Up <span style="text-transform:none;letter-spacing:0">· ${open ? 'tap any for how-to' : `${moves.length} movements`}</span></span>
+          <svg class="icon chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        ${open ? `<div class="mt8">${moves.map((w, i) => {
           const info = PLAN.warmupInfo[w];
           return `<button class="warmup-item" data-wu="${i}">
             <span><span class="wu-name">${w.split(' — ')[0]}</span>
@@ -71,8 +76,12 @@ App.screens.workouts = function(container) {
             <svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
           </button>`;
         }).join('')}
-        <div class="mt8 text-sm text-muted">${PLAN.warmups.liftingNote}</div>`;
-      wuCard.querySelectorAll('[data-wu]').forEach(b => b.onclick = () => showWarmup(PLAN.warmups[plan.warmup][b.dataset.wu]));
+        <div class="mt8 text-sm text-muted">${PLAN.warmups.liftingNote}</div></div>` : ''}`;
+      wuCard.querySelectorAll('[data-wu]').forEach(b => b.onclick = () => showWarmup(moves[b.dataset.wu]));
+      wuCard.querySelector('.section-toggle').onclick = () => {
+        Store.set(d => d.settings.warmupCollapsed = open);
+        show(name);
+      };
       workoutContainer.appendChild(wuCard);
     }
 
