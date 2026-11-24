@@ -340,6 +340,7 @@ const App = {
     add(sec) {
       if (!this.state || this.state.doneAt) return;
       this.state.endAt += sec * 1000;
+      this.state.lastCount = null;
       this.state.total = Math.max(this.state.total, this.remaining());
       this._tick();
     },
@@ -353,6 +354,13 @@ const App = {
     _tick() {
       const st = this.state;
       if (!st) return;
+      // Countdown: one short beep at 5, 4, 3, 2, 1 seconds left
+      const rem = this.remaining();
+      if (!st.doneAt && rem >= 1 && rem <= 5 && st.lastCount !== rem) {
+        st.lastCount = rem;
+        App.beep(1, 660, 0.12);
+        if (navigator.vibrate) navigator.vibrate(60);
+      }
       if (!st.doneAt && Date.now() >= st.endAt) {
         st.doneAt = Date.now();
         if (navigator.vibrate) navigator.vibrate([300, 120, 300, 120, 300]);
@@ -413,16 +421,16 @@ const App = {
       if (this._audio.state === 'suspended') this._audio.resume();
     } catch (e) {}
   },
-  beep(times = 1) {
+  beep(times = 1, freq = 880, len = 0.25) {
     try {
       this.unlockAudio();
       const ctx = this._audio, t0 = ctx.currentTime;
       for (let i = 0; i < times; i++) {
         const o = ctx.createOscillator(), g = ctx.createGain();
-        o.frequency.value = 880; o.connect(g); g.connect(ctx.destination);
+        o.frequency.value = freq; o.connect(g); g.connect(ctx.destination);
         const t = t0 + i * 0.35;
-        g.gain.setValueAtTime(0.35, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
-        o.start(t); o.stop(t + 0.26);
+        g.gain.setValueAtTime(0.35, t); g.gain.exponentialRampToValueAtTime(0.001, t + len);
+        o.start(t); o.stop(t + len + 0.01);
       }
     } catch (e) {}
   },
