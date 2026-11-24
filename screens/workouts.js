@@ -113,20 +113,54 @@ App.screens.workouts = function(container) {
     });
   }
 
+  // Rep goal per set from the plan ("8", "10-12" -> top of range, "12/10/8/6+drops" -> per set); null if not a rep count
+  function repTargets(ex) {
+    const n = ex.sets || 1;
+    if (ex.reps.includes('/')) {
+      const parts = ex.reps.split('/').map(p => parseInt(p));
+      return parts.length >= n && parts.every(p => p > 0) ? parts.slice(0, n) : null;
+    }
+    const m = ex.reps.match(/^(\d+)(?:-(\d+))?\b(?!\s*(s|min))/);
+    return m ? Array(n).fill(parseInt(m[2] || m[1])) : null;
+  }
+
+  // Simple progression: every set hit its rep goal last time -> add 5; otherwise same weight, chase the reps
+  function targetFor(ex, last) {
+    const goals = repTargets(ex);
+    if (!goals) return null;
+    const repsText = goals.every(g => g === goals[0]) ? String(goals[0]) : goals.join('/');
+    if (!last) return `First time: pick a weight you can do for ${repsText} with good form.`;
+    const sets = goals.map((_, i) => last.sets[i]);
+    const weights = sets.map(s => s && parseFloat(s.weight)).filter(w => !isNaN(w) && w > 0);
+    const allHit = sets.every((s, i) => s && parseInt(s.reps) >= goals[i]);
+    if (!weights.length) return `Hit ${repsText} reps on every set.`;
+    // Straight sets aim at last time's heaviest weight; pyramids (per-set rep goals) keep each set's weight
+    const straight = goals.every(g => g === goals[0]);
+    const top = Math.max(...weights);
+    if (allHit) {
+      return straight
+        ? `<strong>${top + 5} × ${repsText}</strong> <span class="text-green">(+5)</span>. You hit every set last time.`
+        : `<strong>+5 on each set</strong>, ${repsText} reps. You hit every set last time.`;
+    }
+    return straight
+      ? `<strong>${top} × ${repsText}</strong> on all sets, then go up.`
+      : `Same weights as last time; hit <strong>${repsText}</strong> on every set, then go up.`;
+  }
+
   function buildExerciseEl(ex) {
     const wrap = document.createElement('div');
     wrap.className = 'exercise-card';
 
     const pr = getPR(ex.id);
-    const lastSets = getLastSession(ex.id, todayS);
-    const lastStr = lastSets && lastSets.length
-      ? lastSets.map(s => `${s.weight}×${s.reps}`).join(', ')
-      : 'No previous data';
+    const last = lastSession(ex.id, todayS);
+    const numSets = ex.sets || 1;
+    const lastDate = last ? parseDate(last.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) : null;
+    const target = targetFor(ex, last);
 
     wrap.innerHTML = `
       <div class="row-between">
         <div class="exercise-name">${ex.label}</div>
-        ${pr ? `<span class="pr-badge">PR ${pr}kg</span>` : ''}
+        ${pr ? `<span class="pr-badge">PR ${pr}</span>` : ''}
       </div>
       <div class="exercise-meta">
         ${ex.sets}×${ex.reps}
@@ -134,26 +168,37 @@ App.screens.workouts = function(container) {
         ${ex.rest && ex.rest !== 'none' ? ` · rest ${ex.rest}` : ''}
       </div>
       ${ex.note ? `<div class="text-sm text-muted" style="margin-bottom:8px">${ex.note}</div>` : ''}
-      <div class="last-session">Last: ${lastStr}</div>
+      ${target ? `<div class="target-line"><span class="target-tag">Target</span> ${target}</div>` : ''}
+      ${lastDate ? `<div class="text-sm text-muted">Last session: ${lastDate} · tap a "Last" value to copy it</div>` : ''}
+      <div class="set-grid set-head">
+        <span>Set</span><span>Last</span><span>This week</span><span></span>
+      </div>
       <div class="set-rows" id="sets-${ex.id}"></div>
     `;
 
     const setRows = wrap.querySelector(`#sets-${ex.id}`);
-    const numSets = ex.sets || 1;
     for (let s = 0; s < numSets; s++) {
       const key = `${todayS}_${ex.id}_${s}`;
       const saved = Store.get().setLogs[key] || {};
+      const prev = last && last.sets[s];
       const row = document.createElement('div');
-      row.className = 'set-row';
+      row.className = 'set-row set-grid';
       row.innerHTML = `
         <span class="set-num">${s+1}</span>
-        <input class="set-input" type="text" placeholder="weight" value="${saved.weight||''}" style="max-width:70px">
-        <span class="text-muted">×</span>
-        <input class="set-input" type="text" placeholder="reps" value="${saved.reps||''}">
-        <button class="set-done-btn ${saved.done?'done':''}" title="Mark done">✓</button>
+        ${prev
+          ? `<button class="last-cell" aria-label="Copy last time: ${prev.weight} × ${prev.reps}">${prev.weight || '–'} × ${prev.reps || '–'}</button>`
+          : '<span class="last-cell empty">—</span>'}
+        <span class="row" style="gap:4px">
+          <input class="set-input" type="text" inputmode="decimal" placeholder="wt" aria-label="Weight" value="${saved.weight||''}">
+          <span class="text-muted">×</span>
+          <input class="set-input" type="text" inputmode="numeric" placeholder="reps" aria-label="Reps" value="${saved.reps||''}">
+        </span>
+        <button class="set-done-btn ${saved.done?'done':''}" title="Mark set done">✓</button>
       `;
       const [wInput, rInput] = row.querySelectorAll('.set-input');
       const doneBtn = row.querySelector('.set-done-btn');
+      const copy = row.querySelector('button.last-cell');
+      if (copy) copy.onclick = () => { wInput.value = prev.weight || ''; rInput.value = prev.reps || ''; saveSet(); };
 
       function saveSet() {
         Store.set(d => {

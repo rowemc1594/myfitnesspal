@@ -163,19 +163,18 @@ function getPR(exerciseId) {
   }
   return best;
 }
-function getLastSession(exerciseId, beforeDate) {
+// Most recent day before beforeDate with completed sets for this exercise: { date, sets: [{weight, reps} | null by set index] }
+function lastSession(exerciseId, beforeDate) {
   const setLogs = Store.get().setLogs;
-  // find most recent date before beforeDate that has this exercise
-  const dates = Object.keys(setLogs)
-    .filter(k => k.includes('_' + exerciseId + '_'))
-    .map(k => k.split('_')[0])
-    .filter(d => d < beforeDate);
-  if (!dates.length) return null;
-  dates.sort().reverse();
-  const lastDate = dates[0];
-  const setKeys = Object.keys(setLogs).filter(k => k.startsWith(lastDate + '_' + exerciseId + '_'));
-  setKeys.sort();
-  return setKeys.map(k => setLogs[k]).filter(s => s.done);
+  let date = null;
+  const byDate = {};
+  for (const [key, v] of Object.entries(setLogs)) {
+    const [d, id, idx] = key.split('_');
+    if (id !== exerciseId || d >= beforeDate || !v.done || (!v.weight && !v.reps)) continue;
+    (byDate[d] = byDate[d] || [])[parseInt(idx)] = { weight: v.weight, reps: v.reps };
+    if (!date || d > date) date = d;
+  }
+  return date ? { date, sets: byDate[date] } : null;
 }
 
 /* ── App shell ──────────────────────────────────────────────── */
