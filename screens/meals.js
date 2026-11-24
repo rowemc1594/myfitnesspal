@@ -1,4 +1,21 @@
 'use strict';
+// Macros for one day: eaten = ticked meal items + extras; goal = every non-optional item in that day's plan.
+// Returns { eaten: [cal, protein, fat], goal: [cal, protein, fat] }. Used by Today/Meals and History.
+App.dayMacros = function(ds) {
+  const meals = isTrainingDay(ds) ? PLAN.meals.training : PLAN.meals.nonTraining;
+  const logs = Store.get().mealLogs[ds] || {};
+  const eaten = [0, 0, 0], goal = [0, 0, 0];
+  meals.forEach(meal => (meal.macros || []).forEach((m, i) => {
+    const t = logs[meal.id] || {};
+    for (let k = 0; k < 3; k++) {
+      if (!/^optional/i.test(meal.items[i])) goal[k] += m[k];
+      if (t[i]) eaten[k] += m[k];
+    }
+  }));
+  ((Store.get().extraFoods || {})[ds] || []).forEach(x => { eaten[0] += x.cal || 0; eaten[1] += x.p || 0; eaten[2] += x.f || 0; });
+  return { eaten, goal };
+};
+
 // Meal checklist for one day; used by both Today and Meals screens
 App.renderMealChecklist = function(el, ds, { allowReorder = false, collapsible = false } = {}) {
   const training = isTrainingDay(ds);
@@ -39,17 +56,8 @@ App.renderMealChecklist = function(el, ds, { allowReorder = false, collapsible =
     const doneCount = meals.filter(isDone).length;
     const nextIdx = meals.findIndex(m => !isDone(m));
 
-    // Macros: eaten = ticked items; goal = every non-optional item in today's plan
-    const eaten = [0, 0, 0], goal = [0, 0, 0];
-    meals.forEach(meal => (meal.macros || []).forEach((m, i) => {
-      const t = ticks(meal.id);
-      for (let k = 0; k < 3; k++) {
-        if (!isOptional(meal.items[i])) goal[k] += m[k];
-        if (t[i]) eaten[k] += m[k];
-      }
-    }));
+    const { eaten, goal } = App.dayMacros(ds);
     const extras = (Store.get().extraFoods || {})[ds] || [];
-    extras.forEach(x => { eaten[0] += x.cal || 0; eaten[1] += x.p || 0; eaten[2] += x.f || 0; });
     const mac = document.createElement('div');
     mac.className = 'card macro-card';
     mac.innerHTML = `<div class="card-title">${ds === todayStr() ? "Today's macros" : 'Macros'} <span class="text-sm text-muted" style="text-transform:none;letter-spacing:0">· estimated</span></div>

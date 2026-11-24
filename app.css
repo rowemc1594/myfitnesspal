@@ -398,3 +398,16 @@ select {
 .past-banner { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--bg2)); }
 .day-chip.skipped .dc-label { color: var(--text2); font-style: italic; }
 .day-chip.viewing { outline: 2px solid var(--accent); outline-offset: -2px; }
+/* History: this week */
+.mt16 { margin-top: 16px; }
+.wk-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.wk-day { display: flex; flex-direction: column; align-items: center; padding: 6px 2px; border-radius: 8px; background: var(--bg3); font-size: .6rem; color: var(--text2); }
+.wk-day strong { font-size: .62rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.wk-day.done { background: color-mix(in srgb, var(--green) 18%, var(--bg3)); color: var(--green); }
+.wk-day.missed { background: color-mix(in srgb, var(--red) 15%, var(--bg3)); color: var(--red); }
+.wk-day.skipped strong { font-style: italic; }
+.wk-day.today { outline: 1.5px solid var(--blue); color: var(--blue); }
+.wk-macro { margin-top: 10px; }
+.wk-bar { position: relative; height: 8px; background: var(--bg3); border-radius: 4px; margin: 4px 0; }
+.wk-bar .progress-fill { height: 100%; }
+.wk-pace { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--text); border-radius: 1px; transform: translateX(-1px); }
