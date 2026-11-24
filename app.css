@@ -477,7 +477,6 @@ textarea.mp-in { resize: vertical; line-height: 1.4; }
 .xs-tile b { font-size: 1.15rem; color: var(--text); white-space: nowrap; line-height: 1.1; }
 .xs-tile span { font-size: .68rem; line-height: 1.15; text-align: center; max-width: 100%; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .xs-tile em { font-style: normal; font-size: .8rem; font-weight: 600; }
-.xs-tile.warm { width: 60px; }
 .xs-tile.next { border-color: var(--blue); background: color-mix(in srgb, var(--blue) 14%, var(--bg3)); }
 .xs-tile.next b, .xs-tile.next em { color: var(--blue); }
 .xs-tile.some { border-color: var(--accent2); background: color-mix(in srgb, var(--accent2) 14%, var(--bg3)); }

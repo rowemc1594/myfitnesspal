@@ -99,9 +99,7 @@ App.screens.workouts = function(container) {
     // Blue = the exercise you're on: the open, unfinished one; otherwise the first unfinished
     const openIdx = units.findIndex(u => !unitComplete(u) && cardOf(u[0]) && !cardOf(u[0]).classList.contains('collapsed'));
     const next = openIdx >= 0 ? openIdx : firstIncomplete();
-    const hasWarmup = !!workoutContainer.querySelector('.warmup-card');
     stripEl.innerHTML = `<div class="xs-row">
-      ${hasWarmup ? '<button class="xs-tile warm" data-warm="1"><b>W</b><span>Warm-up</span></button>' : ''}
       ${units.map((u, ui) => `<div class="xs-group ${u.length > 1 ? 'ss' : ''}">${u.map(ex => {
         const n = setsDone(ex), of = ex.sets || 1;
         const st = n >= of ? 'done' : n ? 'some' : ui === next ? 'next' : '';
@@ -115,8 +113,6 @@ App.screens.workouts = function(container) {
     const row = stripEl.querySelector('.xs-row');
     if (cur) row.scrollLeft = Math.max(0, cur.offsetLeft - row.offsetLeft - 70);
     stripEl.querySelectorAll('[data-unit]').forEach(b => b.onclick = () => focusUnit(+b.dataset.unit, true));
-    const w = stripEl.querySelector('[data-warm]');
-    if (w) w.onclick = () => workoutContainer.querySelector('.warmup-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
     // Header progress on each exercise card
     units.flat().forEach(ex => {
       const c = cardOf(ex); if (!c) return;
