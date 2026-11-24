@@ -126,6 +126,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
   cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
   -webkit-tap-highlight-color: transparent;
 }
+select.select-sm { width: auto; padding: 4px 8px; font-size: 0.82rem; min-height: 32px; }
 .water-glass { color: var(--text2); }
 .water-glass .icon { width: 18px; height: 18px; }
 .water-glass.filled { background: var(--text); border-color: var(--text); color: var(--bg); }

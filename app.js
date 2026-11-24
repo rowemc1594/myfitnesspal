@@ -2,7 +2,7 @@
 /* ── Storage ────────────────────────────────────────────────── */
 const STORAGE_KEY = 'trackerData_v1';
 const BACKUP_KEY  = 'trackerData_backup';
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 function defaultStore() {
   return {
@@ -14,6 +14,7 @@ function defaultStore() {
     waterLogs: {},        // { 'YYYY-MM-DD': number (glasses of 250ml) }
     supplementLogs: {},   // { 'YYYY-MM-DD': { suppId: bool } }
     mealOrder: {},        // { 'YYYY-MM-DD': [mealId, ...] }
+    settings: { waterUnit: 'L' }, // 'L' | 'cups' — display only
     lastBackup: null,
     firstRun: true
   };
@@ -22,7 +23,8 @@ function defaultStore() {
 // migrations[n] upgrades data from version n to n+1. Never remove entries.
 const migrations = [
   d => Object.assign(defaultStore(), d, { firstRun: d.firstRun ?? true }),
-  d => { d.mealOrder = d.mealOrder || {}; return d; }
+  d => { d.mealOrder = d.mealOrder || {}; return d; },
+  d => { d.settings = Object.assign({ waterUnit: 'L' }, d.settings); return d; }
 ];
 
 function runMigrations(data) {

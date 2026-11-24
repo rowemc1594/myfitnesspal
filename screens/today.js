@@ -101,9 +101,24 @@ App.screens.today = function(container) {
     });
 
     // Water
+    // Stored as 250 ml ticks; unit only changes the label (1 tick ≈ 1 cup)
+    const fmtWater = n => Store.get().settings.waterUnit === 'cups'
+      ? `${n} / ${waterGoal} cups`
+      : `${(n * 0.25).toFixed(2)} / ${PLAN.waterGoalLitres} L`;
     const waterRow = document.createElement('div');
     waterRow.className = 'mt12';
-    waterRow.innerHTML = `<div class="row-between text-sm mb4"><span>Water</span><span id="water-label">${(waterGlasses*0.25).toFixed(2)}L / ${PLAN.waterGoalLitres}L</span></div>`;
+    const unit = Store.get().settings.waterUnit;
+    waterRow.innerHTML = `<div class="row-between text-sm" style="margin-bottom:8px">
+        <div class="row" style="gap:8px"><span>Water</span>
+          <select id="water-unit" class="select-sm" aria-label="Water unit">
+            <option value="L" ${unit === 'L' ? 'selected' : ''}>Litres</option>
+            <option value="cups" ${unit === 'cups' ? 'selected' : ''}>Cups</option>
+          </select></div>
+        <span id="water-label">${fmtWater(waterGlasses)}</span></div>`;
+    waterRow.querySelector('#water-unit').addEventListener('change', e => {
+      Store.set(d => d.settings.waterUnit = e.target.value);
+      waterRow.querySelector('#water-label').textContent = fmtWater(Store.get().waterLogs[ds] || 0);
+    });
     const glassesEl = document.createElement('div');
     glassesEl.className = 'water-glasses';
     for (let i = 0; i < waterGoal; i++) {
@@ -111,9 +126,10 @@ App.screens.today = function(container) {
       g.className = 'water-glass' + (i < waterGlasses ? ' filled' : '');
       g.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg>';
       g.addEventListener('click', () => {
-        const newVal = i < waterGlasses ? i : i + 1;
+        const current = Store.get().waterLogs[ds] || 0;
+        const newVal = i < current ? i : i + 1;
         Store.set(d => d.waterLogs[ds] = newVal);
-        waterRow.querySelector('#water-label').textContent = `${(newVal*0.25).toFixed(2)}L / ${PLAN.waterGoalLitres}L`;
+        waterRow.querySelector('#water-label').textContent = fmtWater(newVal);
         for (let j = 0; j < waterGoal; j++) {
           glassesEl.children[j].classList.toggle('filled', j < newVal);
         }
