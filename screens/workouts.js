@@ -7,12 +7,18 @@ App.screens.workouts = function(container) {
   // Workout selector
   const selCard = document.createElement('div');
   selCard.className = 'card';
-  selCard.innerHTML = `<div class="card-title">Select Workout</div>
+  selCard.innerHTML = `<div class="row-between" style="margin-bottom:8px">
+      <span class="card-title" style="margin:0">Select Workout</span>
+      <button class="btn btn-secondary btn-sm" id="tempo-help-btn" style="min-height:30px">Tempo ?</button>
+    </div>
     <select id="workout-select">
       <option value="">-- Choose --</option>
       ${PLAN.workoutOrder.map(w => `<option value="${w}" ${todayWorkout===w?'selected':''}>${w} — ${PLAN.focus[w]}</option>`).join('')}
     </select>`;
   container.appendChild(selCard);
+  selCard.querySelector('#tempo-help-btn').onclick = () =>
+    App.showModal(`<h2>${PLAN.tempoHelp.title}</h2><div class="mt8">${PLAN.tempoHelp.body.map(b => `<p class="text-sm mt8">${b}</p>`).join('')}</div>
+      <p class="text-sm text-muted mt12">Tip: tap any exercise's tempo (like 3-0-1) for its own breakdown.</p>`);
 
   const workoutContainer = document.createElement('div');
   workoutContainer.id = 'workout-exercise-list';
@@ -84,16 +90,6 @@ App.screens.workouts = function(container) {
       };
       workoutContainer.appendChild(wuCard);
     }
-
-    // Tempo help
-    const tempoCard = document.createElement('div');
-    tempoCard.className = 'card';
-    tempoCard.innerHTML = `<div class="row-between"><span class="card-title" style="margin:0">Tempo Guide</span>
-      <button class="btn btn-secondary btn-sm" id="tempo-help-btn">?</button></div>`;
-    tempoCard.querySelector('#tempo-help-btn').addEventListener('click', () => {
-      App.showModal(`<h2>${PLAN.tempoHelp.title}</h2><div class="mt8">${PLAN.tempoHelp.body.map(b=>`<p class="text-sm mt8">${b}</p>`).join('')}</div>`);
-    });
-    workoutContainer.appendChild(tempoCard);
 
     // Group by superset
     const groups = [];
