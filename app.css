@@ -238,6 +238,16 @@ select.select-sm { width: auto; padding: 4px 8px; font-size: 0.82rem; min-height
 .set-row:not(.is-done) .set-input:not(:placeholder-shown) { color: var(--accent2); border-style: dashed; border-color: color-mix(in srgb, var(--accent2) 50%, var(--border)); }
 .set-row.is-done .set-input { border-color: color-mix(in srgb, var(--green) 50%, var(--border)); }
 .target-tag { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--accent2); border: 1px solid var(--accent2); border-radius: 4px; padding: 1px 5px; margin-right: 4px; }
+.warmup-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 48px;
+  padding: 8px 0; background: none; border: none; border-bottom: 1px solid var(--border);
+  color: var(--text); font: inherit; text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.warmup-item .icon { color: var(--text2); }
+.wu-name { font-size: 0.92rem; }
+.wu-steps { padding-left: 20px; margin: 12px 0; line-height: 1.5; font-size: 0.9rem; }
+.wu-steps li { margin-bottom: 6px; }
+a.btn { text-decoration: none; }
 .tempo-chip {
   font: inherit; font-weight: 700; color: var(--text); background: var(--bg2); cursor: pointer;
   border: 1px solid var(--border); border-radius: 6px; padding: 2px 7px; min-height: 26px;

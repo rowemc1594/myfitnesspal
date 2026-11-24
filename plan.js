@@ -216,6 +216,127 @@ const PLAN = {
     liftingNote: 'A couple of light, progressively heavier low-rep sets before work sets (e.g. 45×5, 65×3, 85×1, then 100 for work sets).'
   },
 
+  // Tap-to-learn guides, keyed by the exact names in warmups above
+  warmupInfo: {
+    'Cat/Camel': {
+      why: 'Loosens the whole spine before you load it.',
+      dose: '8–10 slow reps',
+      steps: ['Start on hands and knees, hands under shoulders, knees under hips.',
+        'Cat: round your back up toward the ceiling and tuck your chin.',
+        'Camel: let your belly drop, lift your chest and tailbone, look slightly up.',
+        'Move slowly between the two, one breath each way.'],
+      cue: 'Move through the whole spine; don\'t just bend at the neck.'
+    },
+    'Warrior Lunge Stretch — 2×20-25s per side': {
+      why: 'Opens the hip flexors so you can squat deep and keep your hips under you.',
+      dose: '2 × 20–25 seconds per side',
+      steps: ['Kneel in a lunge: one knee down, other foot flat in front.',
+        'Squeeze the glute of the back leg and tuck your pelvis under.',
+        'Shift forward slightly until you feel a stretch at the front of the back hip.',
+        'Reach the arm on the back-leg side straight overhead and lean a little away.'],
+      cue: 'Glute squeeze first. Don\'t arch your lower back to fake the stretch.'
+    },
+    'Bird Dogs': {
+      why: 'Wakes up your core and glutes and teaches a stable, flat back.',
+      dose: '8 per side',
+      steps: ['Start on hands and knees with a flat back.',
+        'Reach one arm forward and the opposite leg back until both are level with your body.',
+        'Hold 1–2 seconds without letting your hips tip or rotate.',
+        'Return under control and switch sides.'],
+      cue: 'Imagine a glass of water on your lower back. Don\'t spill it.'
+    },
+    'Two-Legged Glute Bridges': {
+      why: 'Switches on the glutes before squats and deadlifts.',
+      dose: '10–12 reps, 2-second squeeze at the top',
+      steps: ['Lie on your back, knees bent, feet flat and hip-width apart.',
+        'Push through your heels and squeeze your glutes to lift your hips.',
+        'Stop when shoulders, hips and knees are in a straight line.',
+        'Hold, then lower slowly.'],
+      cue: 'Push the hips up with the glutes, not by arching the lower back.'
+    },
+    'Front-to-Back Hip Swings': {
+      why: 'Dynamically loosens hamstrings and hip flexors.',
+      dose: '10–15 swings per leg',
+      steps: ['Stand side-on to a wall or rack and hold it for balance.',
+        'Swing the outside leg forward and back like a pendulum.',
+        'Start small and let the swings get bigger each rep.',
+        'Switch sides.'],
+      cue: 'Stay tall. The leg moves, your torso doesn\'t.'
+    },
+    'Frontal Plane Hip Swings': {
+      why: 'Loosens the inner thigh (adductors) and outer hip for squat depth.',
+      dose: '10–15 swings per leg',
+      steps: ['Face a wall or rack with both hands on it.',
+        'Swing one leg across your body, then out to the side.',
+        'Gradually increase the range.',
+        'Switch legs.'],
+      cue: 'Keep your hips facing the wall; don\'t twist with the swing.'
+    },
+    'Dynamic Calf Stretch': {
+      why: 'Improves ankle mobility so your knees can travel forward in squats.',
+      dose: '10 per side',
+      steps: ['Hands on a wall, one foot stepped back with the leg straight.',
+        'Press the back heel down to feel the calf stretch.',
+        'Lift the heel, then press it back down, rocking gently.',
+        'Switch legs.'],
+      cue: 'Keep the back foot pointing straight ahead.'
+    },
+    'Scapular Push Ups': {
+      why: 'Activates the muscles that control your shoulder blades before pressing.',
+      dose: '10–12 reps',
+      steps: ['Get in a push-up position with arms straight (or on your knees).',
+        'Keeping elbows locked, let your shoulder blades pinch together so your chest sinks a little.',
+        'Push the floor away to spread your shoulder blades apart.',
+        'That\'s one rep. Your arms never bend.'],
+      cue: 'Small movement, all from the shoulder blades.'
+    },
+    'Broomstick Dislocations': {
+      why: 'Opens up the shoulders and chest through a full overhead range. (Nothing actually dislocates.)',
+      dose: '10–15 slow reps',
+      steps: ['Hold a broomstick or PVC pipe with a very wide overhand grip, arms straight, in front of your hips.',
+        'Keeping arms straight, raise the stick up over your head.',
+        'Keep going until it comes down behind your back to your hips.',
+        'Reverse the path back to the front.'],
+      cue: 'If you have to bend your elbows, widen your grip. Narrow it over the weeks as you loosen up. Never force it through pain.'
+    },
+    'Shoulder Circles (little to big)': {
+      why: 'Gets blood into the shoulder joint through every angle.',
+      dose: '10 forward, then 10 backward',
+      steps: ['Stand tall with arms straight out to the sides.',
+        'Make small circles with your hands.',
+        'Gradually make each circle bigger until they\'re full arm circles.',
+        'Reverse direction.'],
+      cue: 'Smooth and controlled. No flinging.'
+    },
+    'Wall Slides': {
+      why: 'Trains your shoulders to go overhead with good posture.',
+      dose: '10 slow reps',
+      steps: ['Stand with your back, head and backside against a wall, feet a little out.',
+        'Put your arms against the wall in a "goalpost" shape: elbows bent 90°, at shoulder height.',
+        'Slide your arms up the wall toward a "Y" while keeping elbows and wrists touching it.',
+        'Slide back down, squeezing your shoulder blades down and together.'],
+      cue: 'Keep your lower back on the wall. Only go as high as you can without it arching.'
+    },
+    'Reach-Roll-Lift': {
+      why: 'Builds upper-back mobility and wakes up the lower traps.',
+      dose: '8 per side',
+      steps: ['Kneel and sit back on your heels, forearms and forehead toward the floor (like child\'s pose).',
+        'Reach one arm forward along the floor, palm down.',
+        'Roll the palm so your thumb points up.',
+        'Lift the straight arm off the floor, hold 2 seconds, lower. Repeat, then switch arms.'],
+      cue: 'Keep your backside on your heels so your lower back can\'t cheat.'
+    },
+    'Dynamic Blackburns': {
+      why: 'Strengthens the upper back and rear shoulders that keep your shoulders healthy when pressing.',
+      dose: '8–10 slow reps',
+      steps: ['Lie face down, forehead on a towel, arms out overhead in a "Y", thumbs up.',
+        'Lift your arms off the floor by squeezing your shoulder blades.',
+        'Keeping them lifted, sweep your arms down to your sides like a snow angel.',
+        'Sweep back up and repeat without resting your arms.'],
+      cue: 'Thumbs stay pointed up the whole time.'
+    }
+  },
+
   tempoHelp: {
     title: 'Tempo Explained',
     body: [

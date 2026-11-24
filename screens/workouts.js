@@ -62,11 +62,17 @@ App.screens.workouts = function(container) {
     if (plan.warmup) {
       const wuCard = document.createElement('div');
       wuCard.className = 'card';
-      wuCard.innerHTML = `<div class="card-title">Warm-Up</div>
-        <ul style="padding-left:18px;line-height:1.9">
-          ${PLAN.warmups[plan.warmup].map(w => `<li class="text-sm">${w}</li>`).join('')}
-        </ul>
+      wuCard.innerHTML = `<div class="card-title">Warm-Up <span style="text-transform:none;letter-spacing:0">· tap any for how-to</span></div>
+        ${PLAN.warmups[plan.warmup].map((w, i) => {
+          const info = PLAN.warmupInfo[w];
+          return `<button class="warmup-item" data-wu="${i}">
+            <span><span class="wu-name">${w.split(' — ')[0]}</span>
+              ${info ? `<span class="text-sm text-muted" style="display:block">${info.dose}</span>` : ''}</span>
+            <svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+          </button>`;
+        }).join('')}
         <div class="mt8 text-sm text-muted">${PLAN.warmups.liftingNote}</div>`;
+      wuCard.querySelectorAll('[data-wu]').forEach(b => b.onclick = () => showWarmup(PLAN.warmups[plan.warmup][b.dataset.wu]));
       workoutContainer.appendChild(wuCard);
     }
 
@@ -164,6 +170,19 @@ App.screens.workouts = function(container) {
         : `Same weights as last time; hit <strong>${repsText}</strong> on every set, then add 5.${reason}`;
     }
     return { text, sets };
+  }
+
+  function showWarmup(name) {
+    const info = PLAN.warmupInfo[name];
+    const title = name.split(' — ')[0];
+    if (!info) return;
+    const search = encodeURIComponent(title.replace(/\(.*?\)/g, '') + ' warm up exercise');
+    App.showModal(`<h2>${title}</h2>
+      <div class="text-sm text-muted" style="margin:4px 0 12px">${info.why}</div>
+      <div class="badge badge-green">${info.dose}</div>
+      <ol class="wu-steps">${info.steps.map(s => `<li>${s}</li>`).join('')}</ol>
+      <div class="card" style="margin-bottom:0"><div class="card-title" style="margin-bottom:4px">Key cue</div><div class="text-sm">${info.cue}</div></div>
+      <a class="btn btn-secondary btn-full mt12" href="https://www.youtube.com/results?search_query=${search}" target="_blank" rel="noopener">Watch a demo (YouTube)</a>`);
   }
 
   function showTempo(ex) {
