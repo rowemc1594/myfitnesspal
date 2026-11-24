@@ -1,10 +1,10 @@
 'use strict';
 // Build number shown in the header. Bump together with CACHE_NAME in sw.js (tracker-v<BUILD>).
-const BUILD = 55;
+const BUILD = 56;
 /* ── Storage ────────────────────────────────────────────────── */
 const STORAGE_KEY = 'trackerData_v1';
 const BACKUP_KEY  = 'trackerData_backup';
-const SCHEMA_VERSION = 8;
+const SCHEMA_VERSION = 9;
 
 function defaultStore() {
   return {
@@ -19,7 +19,7 @@ function defaultStore() {
     mealOrder: {},        // { 'YYYY-MM-DD': [mealId, ...] }
     extraFoods: {},       // off-plan food: { 'YYYY-MM-DD': [{name, amount, cal, p, f}] }
     skippedDays: {},      // past days marked "skipped, no workout": { 'YYYY-MM-DD': true }
-    settings: { waterUnit: 'cups', waterGoalCups: 16 }, // unit is display only; goal stored in cups
+    settings: { waterUnit: 'oz', waterGoalCups: 16 }, // unit is display only; goal stored in cups
     lastBackup: null,
     firstRun: true
   };
@@ -37,7 +37,9 @@ const migrations = [
   // Off-plan food log
   d => { d.extraFoods = d.extraFoods || {}; return d; },
   // Past days you mark as skipped (dropped from catch-ups, not shown as missed)
-  d => { d.skippedDays = d.skippedDays || {}; return d; }
+  d => { d.skippedDays = d.skippedDays || {}; return d; },
+  // Water shown in ounces by default (goal unchanged: 16 cups = 128 oz, from the coach's plan)
+  d => { d.settings.waterUnit = 'oz'; return d; }
 ];
 
 function runMigrations(data) {
