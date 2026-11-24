@@ -278,11 +278,7 @@ App.screens.workouts = function(container) {
     const setRows = wrap.querySelector(`#sets-${ex.id}`);
     const fillers = [];
     const clearers = [];
-    wrap.querySelector('.clear-sets').onclick = e => {
-      const ticked = wrap.querySelectorAll('.set-done-btn.done').length;
-      const run = () => clearers.forEach(c => c());
-      if (ticked) App.confirmTap(e.currentTarget, 'Sure?', run); else run();
-    };
+    wrap.querySelector('.clear-sets').onclick = () => clearers.forEach(c => c());
     const tBtn = wrap.querySelector('.target-line');
     if (tBtn) tBtn.onclick = () => {
       const filled = fillers.filter(f => f()).length;

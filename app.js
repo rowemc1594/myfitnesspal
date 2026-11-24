@@ -288,17 +288,6 @@ const App = {
     };
   },
 
-  // Tap-twice confirm (native confirm() can be suppressed in installed web apps).
-  // First tap arms the button for 3 s and shows `label`; second tap runs `action`.
-  confirmTap(btn, label, action) {
-    if (btn.dataset.armed) { clearTimeout(btn._disarm); delete btn.dataset.armed; btn.innerHTML = btn._orig; btn.classList.remove('armed'); action(); return; }
-    btn.dataset.armed = '1';
-    btn._orig = btn.innerHTML;
-    btn.innerHTML = label;
-    btn.classList.add('armed');
-    btn._disarm = setTimeout(() => { delete btn.dataset.armed; btn.innerHTML = btn._orig; btn.classList.remove('armed'); }, 3000);
-  },
-
   showModal(html) {
     document.getElementById('modal-content').innerHTML = html;
     document.getElementById('modal-overlay').classList.remove('hidden');
