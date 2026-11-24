@@ -85,9 +85,22 @@ App.screens.history = function(container) {
         const state = w ? 'done' : past && skippedDays[ds] ? 'skipped'
           : past && planned !== 'Rest' && !doneSet.has(planned) ? 'missed' : i === todayIdx ? 'today' : '';
         const label = w ? PLAN.shortNames[w] : state === 'skipped' ? 'Skip' : state === 'missed' ? 'Missed' : PLAN.shortNames[planned];
-        return `<div class="wk-day ${state}"><span>${DOW[i]}</span><strong>${label}</strong></div>`;
+        const st = w && w !== 'Rest' ? workoutExerciseStats(ds, w) : null;
+        const partial = st && st.done < st.total;
+        return `<div class="wk-day ${state}${partial ? ' partial' : ''}"><span>${DOW[i]}</span><strong>${label}</strong>${partial ? `<em>${st.done}/${st.total}</em>` : ''}</div>`;
       }).join('')}</div>
-      <div class="progress-bar mt8"><div class="progress-fill" style="width:${doneN / 5 * 100}%"></div></div>
+      ${(() => {
+        // Each completed workout is 1/5 of the bar: exercises done in blue, exercises left out in orange
+        let blue = 0, orange = 0;
+        days.forEach(ds => {
+          const w = completedWorkout(ds);
+          if (!w || w === 'Rest') return;
+          const st = workoutExerciseStats(ds, w);
+          blue += st.done / st.total / 5; orange += (st.total - st.done) / st.total / 5;
+        });
+        return `<div class="wk-split mt8"><div class="wk-blue" style="width:${Math.min(100, blue * 100)}%"></div><div class="wk-orange" style="width:${Math.min(100 - blue * 100, orange * 100)}%"></div></div>
+          ${orange > 0 ? '<div class="text-sm text-muted mt8"><span class="key key-blue"></span>exercises done <span class="key key-orange"></span>left out of completed workouts</div>' : ''}`;
+      })()}
 
       <div class="row-between mt16"><span style="font-weight:700">Macros</span><span class="text-sm text-muted">eaten / week's plan</span></div>
       ${[['Calories', ''], ['Protein', 'g'], ['Fat', 'g']].map(([name, u], k) => `

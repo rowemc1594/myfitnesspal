@@ -411,3 +411,10 @@ select {
 .wk-bar { position: relative; height: 8px; background: var(--bg3); border-radius: 4px; margin: 4px 0; }
 .wk-bar .progress-fill { height: 100%; }
 .wk-pace { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--text); border-radius: 1px; transform: translateX(-1px); }
+.wk-split { display: flex; height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+.wk-blue { background: var(--accent); }
+.wk-orange { background: var(--accent2); }
+.wk-day em { font-style: normal; font-size: .58rem; color: var(--accent2); }
+.wk-day.done.partial { background: color-mix(in srgb, var(--accent2) 14%, var(--bg3)); }
+.key { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin: 0 4px 0 0; vertical-align: -1px; }
+.key-blue { background: var(--accent); } .key-orange { background: var(--accent2); margin-left: 8px; }

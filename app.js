@@ -1,6 +1,6 @@
 'use strict';
 // Build number shown in the header. Bump together with CACHE_NAME in sw.js (tracker-v<BUILD>).
-const BUILD = 60;
+const BUILD = 61;
 /* ── Storage ────────────────────────────────────────────────── */
 const STORAGE_KEY = 'trackerData_v1';
 const BACKUP_KEY  = 'trackerData_backup';
@@ -179,6 +179,18 @@ function setCompleted(ds, w) {
 }
 function setSkipped(ds, on) {
   Store.set(d => { d.skippedDays = d.skippedDays || {}; if (on) d.skippedDays[ds] = true; else delete d.skippedDays[ds]; });
+}
+// How much of a workout was done that day: an exercise counts once all its sets are ticked.
+// Returns { done, total }; DB Complex (round-based, no sets) counts as fully done when completed.
+function workoutExerciseStats(ds, w) {
+  const plan = PLAN.workouts[w];
+  if (!plan || !plan.exercises || plan.dbComplex) return { done: 1, total: 1 };
+  const logs = Store.get().setLogs;
+  const done = plan.exercises.filter(ex => {
+    for (let s = 0; s < (ex.sets || 1); s++) if (!(logs[`${ds}_${ex.id}_${s}`] || {}).done) return false;
+    return true;
+  }).length;
+  return { done, total: plan.exercises.length };
 }
 function workoutsThisWeek(monday) {
   return weekDays(monday).map(d => completedWorkout(fmtDate(d)));
