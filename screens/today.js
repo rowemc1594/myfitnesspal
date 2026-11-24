@@ -34,12 +34,16 @@ App.screens.today = function(container) {
     const logged = logs[ds];
     const isDone = logged && logged !== 'Rest';
     const planned = !logged && i >= todayIdx ? PLAN.schedule[i] : null;
+    // Missed: a past day with nothing logged whose scheduled workout wasn't made up later this week
+    const missed = !logged && i < todayIdx && PLAN.schedule[i] !== 'Rest' && !doneThisWeek.has(PLAN.schedule[i]);
     const chip = document.createElement('div');
-    chip.className = 'day-chip' + (isToday ? ' today' : '') + (isDone ? ' done' : '');
+    chip.className = 'day-chip' + (isToday ? ' today' : '') + (isDone ? ' done' : '') + (missed ? ' missed' : '');
+    chip.setAttribute('aria-label', `${DOW[i]} ${d.getDate()}: ${isDone ? logged + ', completed' : missed ? PLAN.schedule[i] + ', missed' : logged || planned || 'nothing logged'}`);
     chip.innerHTML = `
       <span class="dc-dow">${DOW[i]}</span>
       <span class="dc-date">${d.getDate()}</span>
-      <span class="dc-label${planned ? ' planned' : ''}">${logged ? PLAN.shortNames[logged] : planned ? PLAN.shortNames[planned] : '—'}</span>
+      <span class="dc-label${planned ? ' planned' : ''}">${logged ? PLAN.shortNames[logged] : planned ? PLAN.shortNames[planned] : missed ? 'Missed' : '—'}</span>
+      <span class="dc-mark">${isDone ? '<svg class="icon" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' : ''}</span>
     `;
     chip.addEventListener('click', () => openDayPicker(ds, i));
     strip.appendChild(chip);
