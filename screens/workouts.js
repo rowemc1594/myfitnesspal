@@ -437,7 +437,11 @@ App.screens.workouts = function(container) {
 // Draws the running timer inside its exercise (or DB Complex) card. One listener for the app.
 function renderInlineTimer(st) {
   document.querySelectorAll('.timer-slot').forEach(slot => {
-    if (!st || slot.dataset.timerAnchor !== st.anchor) { if (slot.innerHTML) slot.innerHTML = ''; slot.className = 'timer-slot'; return; }
+    if (!st || slot.dataset.timerAnchor !== st.anchor) {
+      // Clear fully, including the drawn-shape marker, so the next timer here redraws
+      slot.innerHTML = ''; slot.className = 'timer-slot'; delete slot.dataset.shape;
+      return;
+    }
     const rem = App.timer.remaining();
     const pct = st.doneAt ? 0 : Math.min(100, rem / st.total * 100);
     slot.className = 'timer-slot active' + (st.doneAt ? ' go' : '') + (st.kind === 'work' ? ' work' : '');
