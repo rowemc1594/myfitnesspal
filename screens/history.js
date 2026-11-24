@@ -120,7 +120,7 @@ App.screens.history = function(container) {
             <span><strong>${fmt(eaten[k])}</strong><span class="text-muted"> / ${fmt(goal[k])}${u}</span></span></div>
           <div class="wk-bar"><div class="progress-fill" style="width:${Math.min(100, goal[k] ? eaten[k] / goal[k] * 100 : 0)}%"></div>
             ${todayIdx >= 0 ? `<div class="wk-pace" style="left:${Math.min(100, pace[k] / goal[k] * 100)}%"></div>` : ''}</div>
-          <div class="text-sm text-muted">On pace through today: ${fmt(pace[k])}${u} · ${eaten[k] >= pace[k] ? '<span class="text-green">on track</span>' : `${fmt(pace[k] - eaten[k])}${u} behind`}</div>
+          <div class="text-sm text-muted">Plan through today: ${fmt(pace[k])}${u || ' cal'} · ${eaten[k] >= pace[k] ? '<span class="text-green">on track</span>' : `${fmt(pace[k] - eaten[k])}${u || ' cal'} left`}</div>
         </div>`).join('')}
       <div class="text-sm text-muted mt8">Plan totals add up each day's meals (training or rest-day menu). Estimates.</div>`;
     container.appendChild(card);
