@@ -1,10 +1,10 @@
 'use strict';
 // Build number shown in the header. Bump together with CACHE_NAME in sw.js (tracker-v<BUILD>).
-const BUILD = 53;
+const BUILD = 54;
 /* ── Storage ────────────────────────────────────────────────── */
 const STORAGE_KEY = 'trackerData_v1';
 const BACKUP_KEY  = 'trackerData_backup';
-const SCHEMA_VERSION = 7;
+const SCHEMA_VERSION = 8;
 
 function defaultStore() {
   return {
@@ -18,6 +18,7 @@ function defaultStore() {
     supplementLogs: {},   // { 'YYYY-MM-DD': { suppId: bool } }
     mealOrder: {},        // { 'YYYY-MM-DD': [mealId, ...] }
     extraFoods: {},       // off-plan food: { 'YYYY-MM-DD': [{name, amount, cal, p, f}] }
+    skippedDays: {},      // past days marked "skipped, no workout": { 'YYYY-MM-DD': true }
     settings: { waterUnit: 'cups', waterGoalCups: 16 }, // unit is display only; goal stored in cups
     lastBackup: null,
     firstRun: true
@@ -34,7 +35,9 @@ const migrations = [
   // Picking a workout used to mean "completed"; keep those as completed and also record them as the day's plan
   d => { d.workoutPlan = Object.assign({}, d.workoutLogs, d.workoutPlan); return d; },
   // Off-plan food log
-  d => { d.extraFoods = d.extraFoods || {}; return d; }
+  d => { d.extraFoods = d.extraFoods || {}; return d; },
+  // Past days you mark as skipped (dropped from catch-ups, not shown as missed)
+  d => { d.skippedDays = d.skippedDays || {}; return d; }
 ];
 
 function runMigrations(data) {
@@ -146,7 +149,10 @@ function weekPlan(monday) {
       return null;
     }
     const w = picks[ds] || PLAN.schedule[i];
-    if (w !== 'Rest' && !doneSet.has(w)) { skipped.push(w); taken.add(w); }
+    if (w !== 'Rest' && !doneSet.has(w)) {
+      taken.add(w);
+      if (!(Store.get().skippedDays || {})[ds]) skipped.push(w); // marked skipped: no catch-up offered
+    }
     return w;
   });
   const queue = PLAN.workoutOrder.filter(w => !taken.has(w));
@@ -164,7 +170,13 @@ function setPlanned(ds, w) {
   Store.set(d => d.workoutPlan[ds] = w);
 }
 function setCompleted(ds, w) {
-  Store.set(d => { if (w) { d.workoutLogs[ds] = w; d.workoutPlan[ds] = w; } else delete d.workoutLogs[ds]; });
+  Store.set(d => {
+    if (w) { d.workoutLogs[ds] = w; d.workoutPlan[ds] = w; if (d.skippedDays) delete d.skippedDays[ds]; }
+    else delete d.workoutLogs[ds];
+  });
+}
+function setSkipped(ds, on) {
+  Store.set(d => { d.skippedDays = d.skippedDays || {}; if (on) d.skippedDays[ds] = true; else delete d.skippedDays[ds]; });
 }
 function workoutsThisWeek(monday) {
   return weekDays(monday).map(d => completedWorkout(fmtDate(d)));

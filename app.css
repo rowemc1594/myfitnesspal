@@ -395,3 +395,5 @@ select {
 #rest-timer-bar.soon { border-color: var(--blue); background: #1b3a52; }
 #build-tag { font-size: .7rem; color: var(--text2); opacity: .9; margin-left: 6px; margin-right: auto; align-self: center; font-weight: 400; }
 .mark-all-bar { display: flex; justify-content: flex-end; margin: -4px 0 10px; }
+.past-banner { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--bg2)); }
+.day-chip.skipped .dc-label { color: var(--text2); font-style: italic; }

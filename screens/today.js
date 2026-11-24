@@ -36,14 +36,15 @@ App.screens.today = function(container) {
     const done = completedWorkout(ds);
     const planned = wp.plan[i];
     // Missed: a past day not completed whose planned workout wasn't made up later this week
-    const missed = !done && i < todayIdx && planned !== 'Rest' && !doneThisWeek.has(planned);
+    const skippedDay = !done && i < todayIdx && !!(Store.get().skippedDays || {})[ds];
+    const missed = !done && !skippedDay && i < todayIdx && planned !== 'Rest' && !doneThisWeek.has(planned);
     const upcoming = !done && i >= todayIdx;
     const moved = upcoming && planned !== PLAN.schedule[i];
     const label = done ? PLAN.shortNames[done]
       : upcoming || planned === 'Rest' ? PLAN.shortNames[planned]
-      : missed ? 'Missed' : '—';
+      : skippedDay ? 'Skipped' : missed ? 'Missed' : '—';
     const chip = document.createElement('div');
-    chip.className = 'day-chip' + (isToday ? ' today' : '') + (done ? ' done' : '') + (missed ? ' missed' : '');
+    chip.className = 'day-chip' + (isToday ? ' today' : '') + (done ? ' done' : '') + (missed ? ' missed' : '') + (skippedDay ? ' skipped' : '');
     chip.setAttribute('aria-label', `${DOW[i]} ${d.getDate()}: ${done ? done + ', completed' : missed ? planned + ', missed' : planned + ', planned'}`);
     chip.innerHTML = `
       <span class="dc-dow">${DOW[i]}</span>
@@ -51,7 +52,11 @@ App.screens.today = function(container) {
       <span class="dc-label${upcoming ? ' planned' : ''}${moved ? ' moved' : ''}">${label}</span>
       <span class="dc-mark">${done ? CHECK_SVG : ''}</span>
     `;
-    chip.addEventListener('click', () => openDayPicker(ds, i));
+    // Past days open the workout to log what you did; today and future days pick a workout
+    chip.addEventListener('click', () => {
+      if (i < todayIdx) { App._workoutDate = ds; App.navigate('workouts'); }
+      else openDayPicker(ds, i);
+    });
     strip.appendChild(chip);
   });
 

@@ -1,14 +1,44 @@
 'use strict';
 App.screens.workouts = function(container) {
-  const todayS = todayStr();
-  const planned = plannedWorkout(todayS);
-  const todayWorkout = completedWorkout(todayS) || (planned !== 'Rest' ? planned : '');
+  // Normally today; tapping a past day on Today's week strip opens that date to log it
+  const dayS = App._workoutDate || todayStr();
+  App._workoutDate = null;
+  const isPast = dayS < todayStr();
+  const dayIdx = (parseDate(dayS).getDay() + 6) % 7;
+  const dayLabel = parseDate(dayS).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
+  const planned = plannedWorkout(dayS);
+  const todayWorkout = completedWorkout(dayS) || (planned !== 'Rest' ? planned : '');
+
+  // Past day: say which day is being logged, and offer "skipped" instead of logging
+  if (isPast) {
+    const done = completedWorkout(dayS);
+    const skippedDay = !!(Store.get().skippedDays || {})[dayS];
+    const pb = document.createElement('div');
+    pb.className = 'card past-banner';
+    pb.innerHTML = `<div class="card-title" style="margin-bottom:4px">Logging ${dayLabel}</div>
+      <div class="text-sm text-muted">${done ? `${done} is logged as completed. Edit your numbers below.`
+        : skippedDay ? 'Marked as skipped: no workout that day.'
+        : 'This day has passed. Record what you did below, or pick the workout you did instead.'}</div>
+      <div class="row mt8" style="gap:8px;flex-wrap:wrap">
+        ${done ? '' : skippedDay
+          ? '<button class="btn btn-secondary btn-sm" id="unskip-btn">Undo skip</button>'
+          : '<button class="btn btn-secondary btn-sm" id="skip-btn">Skipped · no workout</button>'}
+        <button class="btn btn-secondary btn-sm" id="back-today-btn">Back to today</button>
+      </div>`;
+    container.appendChild(pb);
+    const back = () => App.navigate('today');
+    pb.querySelector('#back-today-btn').onclick = back;
+    const sk = pb.querySelector('#skip-btn');
+    if (sk) sk.onclick = () => { setSkipped(dayS, true); App.toast(`${dayLabel}: skipped`); back(); };
+    const us = pb.querySelector('#unskip-btn');
+    if (us) us.onclick = () => { setSkipped(dayS, false); App._workoutDate = dayS; App.navigate('workouts'); };
+  }
 
   // Workout selector
   const selCard = document.createElement('div');
   selCard.className = 'card';
   selCard.innerHTML = `<div class="row-between" style="margin-bottom:8px">
-      <span class="card-title" style="margin:0">Select Workout</span>
+      <span class="card-title" style="margin:0">${isPast ? 'Workout you did' : 'Select Workout'}</span>
       <span class="row" style="gap:6px">
         <button class="btn btn-secondary btn-sm" id="sound-test-btn" style="min-height:30px" aria-label="Test timer sound">Sound ▶</button>
         <button class="btn btn-secondary btn-sm" id="tempo-help-btn" style="min-height:30px">Tempo ?</button>
@@ -34,7 +64,7 @@ App.screens.workouts = function(container) {
 
   const sel = document.getElementById('workout-select');
   sel.addEventListener('change', () => {
-    if (sel.value) setPlanned(todayS, sel.value);
+    if (sel.value) setPlanned(dayS, sel.value);
     show(sel.value);
   });
   if (todayWorkout && PLAN.workouts[todayWorkout]) show(todayWorkout);
@@ -46,13 +76,13 @@ App.screens.workouts = function(container) {
 
   // Small "Mark all done" at the top of the workout (same as Finish workout at the bottom)
   function renderMarkAll(name) {
-    if (completedWorkout(todayS) === name) return;
+    if (completedWorkout(dayS) === name) return;
     const bar = document.createElement('div');
     bar.className = 'mark-all-bar';
     bar.innerHTML = `<button class="btn btn-secondary btn-sm" id="mark-all-btn">Mark all done</button>`;
     workoutContainer.prepend(bar);
     bar.querySelector('#mark-all-btn').onclick = () => {
-      setCompleted(todayS, name);
+      setCompleted(dayS, name);
       App.timer.stop();
       App.toast(name + ' completed');
       App.navigate('today');
@@ -60,21 +90,21 @@ App.screens.workouts = function(container) {
   }
 
   function renderFinish(name) {
-    const done = completedWorkout(todayS) === name;
+    const done = completedWorkout(dayS) === name;
     const card = document.createElement('div');
     card.className = 'card';
     card.innerHTML = done
       ? `<div class="row" style="gap:10px"><span class="done-pill"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
-           <div><div style="font-weight:700">${name} completed</div><div class="text-sm text-muted">Logged for today</div></div></div>
+           <div><div style="font-weight:700">${name} completed</div><div class="text-sm text-muted">Logged for ${isPast ? dayLabel : 'today'}</div></div></div>
          <button class="link-btn mt8" id="undo-finish-btn">Not done? Undo</button>`
       : `<button class="btn btn-primary btn-full" id="finish-btn">Finish workout</button>
-         <div class="text-sm text-muted mt8">Marks ${name} completed for today.</div>`;
+         <div class="text-sm text-muted mt8">Marks ${name} completed for ${isPast ? dayLabel : 'today'}.</div>`;
     workoutContainer.appendChild(card);
     const fin = card.querySelector('#finish-btn');
-    if (fin) fin.onclick = () => { setCompleted(todayS, name); App.toast(name + ' completed'); App.navigate('today'); };
+    if (fin) fin.onclick = () => { setCompleted(dayS, name); App.toast(name + ' completed'); App.navigate('today'); };
 
     const undo = card.querySelector('#undo-finish-btn');
-    if (undo) undo.onclick = () => { setCompleted(todayS, null); show(name); };
+    if (undo) undo.onclick = () => { setCompleted(dayS, null); show(name); };
   }
 
   function renderWorkout(name) {
@@ -89,7 +119,7 @@ App.screens.workouts = function(container) {
     }
 
     // Warmup card
-    if (plan.warmup) {
+    if (plan.warmup && !isPast) { // no warm-up when logging a past day
       const wuCard = document.createElement('div');
       wuCard.className = 'card';
       const moves = PLAN.warmups[plan.warmup];
@@ -247,7 +277,7 @@ App.screens.workouts = function(container) {
     wrap.className = 'exercise-card';
 
     const pr = getPR(ex.id);
-    const last = lastSession(ex.id, todayS);
+    const last = lastSession(ex.id, dayS);
     const numSets = ex.sets || 1;
     const lastDate = last ? parseDate(last.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) : null;
     const target = targetFor(ex, last);
@@ -308,7 +338,7 @@ App.screens.workouts = function(container) {
       App.toast(filled ? `Filled ${filled} set${filled > 1 ? 's' : ''}. Tick ✓ when done, or edit first` : 'All sets already ticked');
     };
     for (let s = 0; s < numSets; s++) {
-      const key = `${todayS}_${ex.id}_${s}`;
+      const key = `${dayS}_${ex.id}_${s}`;
       const saved = Store.get().setLogs[key] || {};
       const prev = last && last.sets[s];
       const row = document.createElement('div');
@@ -355,7 +385,7 @@ App.screens.workouts = function(container) {
         doneBtn.classList.toggle('done', nowDone);
         row.classList.toggle('is-done', nowDone);
         saveSet();
-        if (!nowDone) return;
+        if (!nowDone || isPast) return;
         if (nextInSuperset) { App.toast(`Now ${nextInSuperset.label}, no rest`); return; }
         if (restSec > 0) {
           placeSlot(s);
