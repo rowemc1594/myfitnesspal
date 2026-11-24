@@ -101,18 +101,18 @@ App.screens.today = function(container) {
     });
 
     // Water
-    // Stored as 250 ml ticks; unit only changes the label (1 tick ≈ 1 cup)
-    const fmtWater = n => Store.get().settings.waterUnit === 'cups'
-      ? `${n} / ${waterGoal} cups`
-      : `${(n * 0.25).toFixed(2)} / ${PLAN.waterGoalLitres} L`;
+    // Stored as tick counts (1 tick = 1 cup = 8 oz); unit only changes the label
+    const fmtWater = n => Store.get().settings.waterUnit === 'oz'
+      ? `${n * 8} / ${waterGoal * 8} oz`
+      : `${n} / ${waterGoal} cups`;
     const waterRow = document.createElement('div');
     waterRow.className = 'mt12';
     const unit = Store.get().settings.waterUnit;
     waterRow.innerHTML = `<div class="row-between text-sm" style="margin-bottom:8px">
         <div class="row" style="gap:8px"><span>Water</span>
           <select id="water-unit" class="select-sm" aria-label="Water unit">
-            <option value="L" ${unit === 'L' ? 'selected' : ''}>Litres</option>
             <option value="cups" ${unit === 'cups' ? 'selected' : ''}>Cups</option>
+            <option value="oz" ${unit === 'oz' ? 'selected' : ''}>Ounces</option>
           </select></div>
         <span id="water-label">${fmtWater(waterGlasses)}</span></div>`;
     waterRow.querySelector('#water-unit').addEventListener('change', e => {

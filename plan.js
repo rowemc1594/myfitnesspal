@@ -314,7 +314,7 @@ const PLAN = {
     'No oil-based marinades.',
     'Unsweetened almond milk ≈ 35–40 cal/cup.',
     'Plain Greek yogurt only.',
-    'Target ~4 L water per day.',
+    'Target ~16 cups (128 oz) water per day.',
     'First 14 days: 100% compliance, no cheats.'
   ],
 

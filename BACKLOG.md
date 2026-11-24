@@ -12,6 +12,7 @@ Ideas from use, compared to the current app, then planned and shipped in small s
 | 2 | Modern monochrome icons, just shapes | Coloured emoji in the nav, Weight button and water counter | Inline SVG line icons in one colour, no image files. The water drops fill solid when ticked. | None |
 | 2a | _(found while testing 2)_ Rest-timer bar covered the bottom nav | The hidden timer bar slid down over the nav, hiding the tabs | When hidden, the bar is now fully invisible and shows only while a timer is running | None |
 | 3 | Pick water unit: litres or cups | Water always shown in litres (16 ticks of 250 ml = 4 L) | A Litres/Cups dropdown next to "Water" on Today. It only changes the label ("1.50 / 4 L" vs "6 / 16 cups"); each tick is still 250 ml ≈ 1 cup. Also fixed taps after the first one reading a stale count. | Schema v2 → v3: adds `settings.waterUnit` (default `L`). Water logs are unchanged. Pre-migration data is backed up automatically. |
+| 3b | No litres: cups or ounces instead | Litres/Cups dropdown | Dropdown is now **Cups / Ounces** (default Cups). 1 drop = 1 cup = 8 oz; goal 16 cups / 128 oz. Diet note updated to match. | Schema v3 → v4: any saved unit other than cups/oz becomes `cups`. Water logs unchanged. |
 
 ## Planned
 
