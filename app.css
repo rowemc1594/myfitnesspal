@@ -468,3 +468,28 @@ textarea.mp-in { resize: vertical; line-height: 1.4; }
 .timer-slot.paused .ti-fill { background: var(--text2); }
 #rest-timer-bar.paused { border-color: var(--text2); }
 .set-input.missing { border-color: var(--red) !important; background: color-mix(in srgb, var(--red) 12%, var(--bg3)) !important; }
+/* Workout: exercise strip + collapsible exercises */
+.ex-strip { position: sticky; top: -12px; z-index: 20; padding: 8px; margin: 0 -2px 10px; box-shadow: 0 6px 14px rgba(0,0,0,.45); }
+.xs-row { display: flex; gap: 4px; align-items: stretch; }
+.xs-group { display: flex; gap: 3px; flex: 1; min-width: 0; }
+.xs-group.ss { flex: 2; padding-top: 3px; border-top: 2px solid var(--text2); border-radius: 4px 4px 0 0; }
+.xs-tile { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 5px 2px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg3); color: var(--text2); }
+.xs-tile b { font-size: .78rem; color: var(--text); white-space: nowrap; }
+.xs-tile span { font-size: .52rem; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.xs-tile em { font-style: normal; font-size: .58rem; }
+.xs-tile.warm { flex: .7; }
+.xs-tile.next { border-color: var(--blue); background: color-mix(in srgb, var(--blue) 12%, var(--bg3)); }
+.xs-tile.next b, .xs-tile.next em { color: var(--blue); }
+.xs-tile.some { border-color: var(--accent2); background: color-mix(in srgb, var(--accent2) 14%, var(--bg3)); }
+.xs-tile.some em { color: var(--accent2); }
+.xs-tile.done { border-color: var(--green); background: color-mix(in srgb, var(--green) 18%, var(--bg3)); }
+.xs-tile.done b, .xs-tile.done em { color: var(--green); }
+.ex-head { cursor: pointer; gap: 8px; }
+.ex-head .exercise-name { flex: 1; }
+.ex-prog { font-size: .75rem; color: var(--text2); white-space: nowrap; }
+.ex-prog.some { color: var(--accent2); } .ex-prog.done { color: var(--green); }
+.ex-head .chevron { width: 18px; height: 18px; color: var(--text2); transition: transform .2s; transform: rotate(180deg); }
+.exercise-card.collapsed .chevron { transform: none; }
+.exercise-card.collapsed .ex-body { display: none; }
+.exercise-card.collapsed .exercise-name { margin-bottom: 0; }
+.exercise-card, .warmup-card, #workout-exercise-list > .card { scroll-margin-top: 92px; }

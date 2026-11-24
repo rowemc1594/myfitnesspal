@@ -67,12 +67,99 @@ App.screens.workouts = function(container) {
     if (sel.value) setPlanned(dayS, sel.value);
     show(sel.value);
   });
-  if (todayWorkout && PLAN.workouts[todayWorkout]) show(todayWorkout);
 
   function show(name) {
     renderWorkout(name);
-    if (name) { renderMarkAll(name); renderFinish(name); }
+    if (name) { renderMarkAll(name); renderStrip(name); renderFinish(name); initFocus(); }
   }
+
+  // ── Exercise strip + focus mode ──
+  // A "unit" is one exercise, or a superset pair (opened and closed together).
+  let units = [];
+  let pendingAdvance = null;   // unit index waiting for the rest timer before moving on
+  let stripEl = null;
+  const setsDone = ex => { const logs = Store.get().setLogs; let n = 0; for (let i = 0; i < (ex.sets || 1); i++) if ((logs[`${dayS}_${ex.id}_${i}`] || {}).done) n++; return n; };
+  const exComplete = ex => setsDone(ex) >= (ex.sets || 1);
+  const unitComplete = u => u.every(exComplete);
+  const cardOf = ex => document.getElementById('ex-' + ex.id);
+  const setUnitOpen = (u, open) => u.forEach(ex => { const c = cardOf(ex); if (c) c.classList.toggle('collapsed', !open); });
+  const firstIncomplete = (after = -1) => { for (let i = after + 1; i < units.length; i++) if (!unitComplete(units[i])) return i; for (let i = 0; i <= after && i < units.length; i++) if (!unitComplete(units[i])) return i; return -1; };
+
+  function renderStrip(name) {
+    const plan = PLAN.workouts[name];
+    if (!plan || plan.dbComplex || !units.length) return;
+    stripEl = document.createElement('div');
+    stripEl.className = 'card ex-strip';
+    workoutContainer.prepend(stripEl);
+    const bar = workoutContainer.querySelector('.mark-all-bar');
+    if (bar) bar.after(stripEl);
+    refreshStrip();
+  }
+  function refreshStrip() {
+    if (!stripEl) return;
+    // Blue = the exercise you're on: the open, unfinished one; otherwise the first unfinished
+    const openIdx = units.findIndex(u => !unitComplete(u) && cardOf(u[0]) && !cardOf(u[0]).classList.contains('collapsed'));
+    const next = openIdx >= 0 ? openIdx : firstIncomplete();
+    const hasWarmup = !!workoutContainer.querySelector('.warmup-card');
+    stripEl.innerHTML = `<div class="xs-row">
+      ${hasWarmup ? '<button class="xs-tile warm" data-warm="1"><b>W</b><span>Warm-up</span></button>' : ''}
+      ${units.map((u, ui) => `<div class="xs-group ${u.length > 1 ? 'ss' : ''}">${u.map(ex => {
+        const n = setsDone(ex), of = ex.sets || 1;
+        const st = n >= of ? 'done' : n ? 'some' : ui === next ? 'next' : '';
+        const [letter, ...rest] = ex.label.split(' ');
+        return `<button class="xs-tile ${st}" data-unit="${ui}" aria-label="${ex.label}: ${n} of ${of} sets">
+          <b>${letter}${n >= of ? ' ✓' : ''}</b><span>${rest.join(' ')}</span><em>${n}/${of}</em></button>`;
+      }).join('')}</div>`).join('')}
+    </div>`;
+    stripEl.querySelectorAll('[data-unit]').forEach(b => b.onclick = () => focusUnit(+b.dataset.unit, true));
+    const w = stripEl.querySelector('[data-warm]');
+    if (w) w.onclick = () => workoutContainer.querySelector('.warmup-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Header progress on each exercise card
+    units.flat().forEach(ex => {
+      const c = cardOf(ex); if (!c) return;
+      const n = setsDone(ex), of = ex.sets || 1;
+      const p = c.querySelector('.ex-prog');
+      p.textContent = n >= of ? `${of}/${of} ✓` : `${n}/${of}`;
+      p.className = 'ex-prog' + (n >= of ? ' done' : n ? ' some' : '');
+    });
+  }
+  function focusUnit(i, scroll) {
+    units.forEach((u, ui) => setUnitOpen(u, ui === i));
+    refreshStrip();
+    if (scroll && units[i]) {
+      const c = cardOf(units[i][0]);
+      (c.closest('.card') || c).scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+  function initFocus() {
+    if (!units.length) return;
+    pendingAdvance = null;
+    const i = firstIncomplete();
+    units.forEach((u, ui) => setUnitOpen(u, ui === i));
+    refreshStrip();
+  }
+  // Called after a set is ticked/unticked/cleared
+  function onSetChange(ex) {
+    refreshStrip();
+    const ui = units.findIndex(u => u.includes(ex));
+    if (ui < 0 || !unitComplete(units[ui]) || cardOf(ex).classList.contains('collapsed')) return;
+    const st = App.timer.state;
+    if (st && !st.doneAt && !st.paused) pendingAdvance = ui;          // wait for the rest to end
+    else setTimeout(() => advanceFrom(ui), 700);                       // no rest: move on after a beat
+  }
+  function advanceFrom(ui) {
+    if (!stripEl || !document.body.contains(stripEl)) return;
+    const next = firstIncomplete(ui);
+    setUnitOpen(units[ui], false);
+    if (next >= 0) focusUnit(next, true);
+    refreshStrip();
+  }
+  // The rest timer ending (Go) or being skipped moves focus on
+  App._onTimerChange = st => {
+    if (pendingAdvance === null || (st && !st.doneAt)) return;
+    const ui = pendingAdvance; pendingAdvance = null;
+    advanceFrom(ui);
+  };
 
   // Small "Mark all done" at the top of the workout (same as Finish workout at the bottom)
   // How many ticked sets on screen are missing a number (for the finish toast)
@@ -119,6 +206,7 @@ App.screens.workouts = function(container) {
 
   function renderWorkout(name) {
     workoutContainer.innerHTML = '';
+    units = [];
     if (!name) return;
     const plan = PLAN.workouts[name];
     if (!plan) return;
@@ -131,7 +219,7 @@ App.screens.workouts = function(container) {
     // Warmup card
     if (plan.warmup && !isPast) { // no warm-up when logging a past day
       const wuCard = document.createElement('div');
-      wuCard.className = 'card';
+      wuCard.className = 'card warmup-card';
       const moves = PLAN.warmups[plan.warmup];
       const open = !Store.get().settings.warmupCollapsed;
       wuCard.innerHTML = `<button class="section-toggle" aria-expanded="${open}">
@@ -172,6 +260,8 @@ App.screens.workouts = function(container) {
       i++;
     }
 
+    units = groups.map(g => g.type === 'superset' ? g.group : [g.ex]);
+    stripEl = null;
     groups.forEach(g => {
       if (g.type === 'superset') {
         const ssCard = document.createElement('div');
@@ -338,13 +428,24 @@ App.screens.workouts = function(container) {
       App.timer.start({ seconds: workSec, kind: 'work', label: ex.label.replace(/^[A-Z]\d?\s+/, ''), anchor, rowIdx: null });
     };
 
+    // Collapsible: header (name, PR, sets done, chevron) + body
+    wrap.id = 'ex-' + ex.id;
+    const head = wrap.firstElementChild;
+    head.classList.add('ex-head');
+    head.insertAdjacentHTML('beforeend', `<span class="ex-prog"></span><svg class="icon chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>`);
+    const body = document.createElement('div');
+    body.className = 'ex-body';
+    while (head.nextSibling) body.appendChild(head.nextSibling);
+    wrap.appendChild(body);
+    head.onclick = () => { wrap.classList.toggle('collapsed'); refreshStrip(); };
+
     const tempoBtn = wrap.querySelector('.tempo-chip');
     if (tempoBtn) tempoBtn.onclick = () => showTempo(ex);
 
     const setRows = wrap.querySelector(`#sets-${ex.id}`);
     const fillers = [];
     const clearers = [];
-    wrap.querySelector('.clear-sets').onclick = () => clearers.forEach(c => c());
+    wrap.querySelector('.clear-sets').onclick = () => { clearers.forEach(c => c()); onSetChange(ex); };
     const tBtn = wrap.querySelector('.target-line');
     if (tBtn) tBtn.onclick = () => {
       const filled = fillers.filter(f => f()).length;
@@ -408,13 +509,14 @@ App.screens.workouts = function(container) {
         doneBtn.classList.toggle('done', nowDone);
         row.classList.toggle('is-done', nowDone);
         saveSet();
-        if (!nowDone || isPast) return;
-        if (nextInSuperset) { App.toast(`Now ${nextInSuperset.label}, no rest`); return; }
+        if (!nowDone || isPast) { onSetChange(ex); return; }
+        if (nextInSuperset) { App.toast(`Now ${nextInSuperset.label}, no rest`); onSetChange(ex); return; }
         if (restSec > 0) {
           placeSlot(s);
           const nextSet = s + 1 < numSets ? `set ${s + 2}` : 'next exercise';
           App.timer.start({ seconds: restSec, kind: 'rest', label: `${ex.label.replace(/^[A-Z]\d?\s+/, '')} · ${nextSet}`, anchor, rowIdx: s, range: /\d+\s*-\s*\d+/.test(ex.rest) ? ex.rest : null });
         }
+        onSetChange(ex);
       });
       rowsList.push(row);
       setRows.appendChild(row);
@@ -505,6 +607,9 @@ App.screens.workouts = function(container) {
       } });
     });
   }
+
+  // First render last, once everything above is defined
+  if (todayWorkout && PLAN.workouts[todayWorkout]) show(todayWorkout);
 };
 
 // Draws the running timer inside its exercise (or DB Complex) card. One listener for the app.
@@ -553,7 +658,7 @@ function renderInlineTimer(st) {
     slot.querySelector('.ti-fill').style.width = pct + '%';
   });
 }
-if (!App._inlineTimerSub) App._inlineTimerSub = App.timer.on(renderInlineTimer);
+if (!App._inlineTimerSub) App._inlineTimerSub = App.timer.on(st => { renderInlineTimer(st); if (App._onTimerChange) App._onTimerChange(st); });
 
 // Rest-row banner: rotates every 5 s. Starts with what's next, then tips; one tip mentions today's water.
 function restTip(st) {
