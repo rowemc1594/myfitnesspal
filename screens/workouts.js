@@ -494,26 +494,30 @@ function renderInlineTimer(st) {
     }
     const rem = App.timer.remaining();
     // Bar uses exact time left (not whole seconds) so it drains smoothly
-    const pct = st.doneAt ? 0 : Math.max(0, Math.min(100, (st.endAt - Date.now()) / (st.total * 1000) * 100));
-    slot.className = 'timer-slot active' + (st.doneAt ? ' go' : '') + (st.kind === 'work' ? ' work' : '') + (!st.doneAt && rem <= 5 ? ' soon' : '');
+    const pct = st.doneAt ? 0 : Math.max(0, Math.min(100, App.timer.msLeft() / (st.total * 1000) * 100));
+    slot.className = 'timer-slot active' + (st.doneAt ? ' go' : '') + (st.kind === 'work' ? ' work' : '') + (!st.doneAt && !st.paused && rem <= 5 ? ' soon' : '') + (st.paused ? ' paused' : '');
     const big = st.doneAt ? (st.kind === 'work' ? 'Time!' : 'Go!') : App.fmtClock(rem);
     const sub = st.doneAt ? (st.kind === 'work' ? 'Done' : `Start ${st.label.split(' · ')[1] || 'next round'}`)
+      : st.paused ? 'Paused'
       : st.kind === 'work' ? 'Working'
       : rem <= 5 ? 'Get ready…'
       : restTip(st);
     // Only rebuild buttons when the state shape changes, so taps aren't lost mid-tick
-    const shape = `${st.kind}|${!!st.doneAt}`;
+    const shape = `${st.kind}|${!!st.doneAt}|${!!st.paused}`;
     if (slot.dataset.shape !== shape) {
       slot.dataset.shape = shape;
       slot.innerHTML = `<div class="ti-row">
           <div class="ti-clock"><div class="ti-time"></div>${st.range && !st.doneAt ? `<div class="ti-range">plan ${st.range}</div>` : ''}</div>
           <div class="ti-sub text-sm"><span class="ti-tip"></span></div>
-          ${st.doneAt ? '' : '<button class="tp-btn" data-t="add">+15</button>'}
-          <button class="tp-btn" data-t="stop">${st.doneAt ? 'OK' : 'Skip'}</button>
+          ${st.doneAt ? '<button class="tp-btn" data-t="stop">OK</button>' : `<button class="tp-btn" data-t="add">+15</button>
+          <button class="tp-btn tp-pause" data-t="pause">${st.paused ? 'Resume' : 'Pause'}</button>
+          <button class="tp-btn tp-x" data-t="stop" aria-label="Skip rest">✕</button>`}
         </div>
         <div class="ti-bar"><div class="ti-fill"></div></div>`;
       const add = slot.querySelector('[data-t="add"]');
       if (add) add.onclick = () => App.timer.add(15);
+      const pz = slot.querySelector('[data-t="pause"]');
+      if (pz) pz.onclick = () => App.timer.state && (App.timer.state.paused ? App.timer.resume() : App.timer.pause());
       slot.querySelector('[data-t="stop"]').onclick = () => App.timer.stop();
     }
     slot.querySelector('.ti-time').textContent = big;

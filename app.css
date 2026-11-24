@@ -460,3 +460,10 @@ textarea.mp-in { resize: vertical; line-height: 1.4; }
 .mp-num { width: 58px; flex: none; text-align: center; padding: 8px 4px; }
 .mp-edit-item { margin: 8px 0 8px 10px; padding-left: 8px; border-left: 2px solid var(--border); }
 .mp-opt { font-size: .7rem; color: var(--text2); display: flex; align-items: center; gap: 3px; white-space: nowrap; }
+/* Timer pause */
+.tp-pause { background: var(--accent); border-color: var(--accent); color: #fff; min-width: 72px; }
+.tp-x { padding: 6px 10px; color: var(--text2); }
+.timer-slot.paused { background: var(--bg3); border-color: var(--text2); animation: none; }
+.timer-slot.paused .ti-time { color: var(--text2); }
+.timer-slot.paused .ti-fill { background: var(--text2); }
+#rest-timer-bar.paused { border-color: var(--text2); }

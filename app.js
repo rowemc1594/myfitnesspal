@@ -1,6 +1,6 @@
 'use strict';
 // Build number shown in the header. Bump together with CACHE_NAME in sw.js (tracker-v<BUILD>).
-const BUILD = 68;
+const BUILD = 69;
 /* ── Storage ────────────────────────────────────────────────── */
 const STORAGE_KEY = 'trackerData_v1';
 const BACKUP_KEY  = 'trackerData_backup';
@@ -488,6 +488,7 @@ const App = {
     },
     add(sec) {
       if (!this.state || this.state.doneAt) return;
+      if (this.state.paused) { this.state.pausedLeft += sec * 1000; this.state.total = Math.max(this.state.total, this.remaining()); this._emit(); return; }
       this.state.endAt += sec * 1000;
       this.state.lastCount = null;
       if (this.state.countStarted) { App.stopCountdownSound(); this.state.countStarted = false; }
@@ -501,10 +502,29 @@ const App = {
       this._emit();
       App.keepAwake(App.currentScreen === 'workouts');
     },
-    remaining() { return this.state ? Math.max(0, Math.ceil((this.state.endAt - Date.now()) / 1000)) : 0; },
+    // Time left in ms (frozen while paused)
+    msLeft() { const st = this.state; return !st ? 0 : st.paused ? st.pausedLeft : Math.max(0, st.endAt - Date.now()); },
+    remaining() { return Math.ceil(this.msLeft() / 1000); },
+    pause() {
+      const st = this.state;
+      if (!st || st.doneAt || st.paused) return;
+      st.pausedLeft = Math.max(0, st.endAt - Date.now());
+      st.paused = true;
+      if (st.countStarted) { App.stopCountdownSound(); st.countStarted = false; st.lastCount = null; }
+      this._emit();
+    },
+    resume() {
+      const st = this.state;
+      if (!st || !st.paused) return;
+      App.unlockAudio();
+      st.endAt = Date.now() + st.pausedLeft;
+      st.paused = false;
+      this._tick();
+    },
     _tick() {
       const st = this.state;
       if (!st) return;
+      if (st.paused) { this._emit(); return; }
       // Last 5 s: one continuous clip (silence, then beeps at 5,4,3,2,1 and Go at 0), started
       // at 0:06. Once it's actually playing, the clock follows the clip so numbers match beeps.
       const LEAD = 6;
@@ -551,11 +571,13 @@ const App = {
     pill.classList.toggle('visible', !inView);
     pill.classList.toggle('go', !!st.doneAt);
     pill.classList.toggle('work', st.kind === 'work');
-    pill.classList.toggle('soon', !st.doneAt && rem <= 5);
+    pill.classList.toggle('soon', !st.doneAt && !st.paused && rem <= 5);
+    pill.classList.toggle('paused', !!st.paused);
     pill.innerHTML = `<button class="tp-main">${st.doneAt ? (st.kind === 'work' ? 'Time!' : 'Go!') : `${st.kind === 'work' ? 'Work' : 'Rest'} ${this.fmtClock(rem)}`}
         <span class="tp-label">${st.label || ''}</span></button>
-      ${st.doneAt ? '' : '<button class="tp-btn" data-t="add">+15</button>'}
-      <button class="tp-btn" data-t="stop" aria-label="Stop timer">✕</button>`;
+      ${st.doneAt ? '' : `<button class="tp-btn" data-t="add">+15</button>
+        <button class="tp-btn" data-t="pause">${st.paused ? 'Resume' : 'Pause'}</button>`}
+      <button class="tp-btn tp-x" data-t="stop" aria-label="${st.doneAt ? 'Dismiss' : 'Skip rest'}">✕</button>`;
     pill.querySelector('.tp-main').onclick = () => {
       const el = st.anchor && document.querySelector(`[data-timer-anchor="${st.anchor}"]`);
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -563,6 +585,8 @@ const App = {
     };
     const add = pill.querySelector('[data-t="add"]');
     if (add) add.onclick = () => this.timer.add(15);
+    const pz = pill.querySelector('[data-t="pause"]');
+    if (pz) pz.onclick = () => st.paused ? this.timer.resume() : this.timer.pause();
     pill.querySelector('[data-t="stop"]').onclick = () => this.timer.stop();
   },
 
