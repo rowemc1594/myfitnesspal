@@ -347,13 +347,13 @@ const App = {
       const rem = this.remaining();
       if (!st.doneAt && rem >= 1 && rem <= 5 && st.lastCount !== rem) {
         st.lastCount = rem;
-        App.beep(1, 660, 0.12);
+        App.beep('tick');
         if (navigator.vibrate) navigator.vibrate(60);
       }
       if (!st.doneAt && Date.now() >= st.endAt) {
         st.doneAt = Date.now();
         if (navigator.vibrate) navigator.vibrate([300, 120, 300, 120, 300]);
-        App.beep(3);
+        App.beep('go');
         if (st.onDone) try { st.onDone(); } catch (e) {}
       }
       // Leave the "Go" state up for 6 s, then clear
@@ -404,20 +404,74 @@ const App = {
     } catch (e) { this._wake = null; }
   },
 
-  // Audio must be started from a tap on iOS; called when a timer starts
+  // ── Sound ──
+  // Beeps are real audio clips (generated WAVs) played through <audio> elements.
+  // iPhones mute Web Audio when the silent switch is on but still play media audio,
+  // and only allow sound after a tap: unlockAudio() runs on the ✓ tap and primes the clips.
+  _clips: null,
+  _makeWav(tones) {
+    // tones: [{freq, len, gap}] -> data: URL of a 16-bit mono WAV
+    const rate = 22050, parts = [];
+    tones.forEach(t => {
+      const n = Math.round(rate * t.len);
+      for (let i = 0; i < n; i++) {
+        const env = Math.min(1, i / 200) * Math.min(1, (n - i) / 400); // soft edges, no clicks
+        parts.push(Math.sin(2 * Math.PI * t.freq * i / rate) * 0.6 * env);
+      }
+      for (let i = 0; i < Math.round(rate * (t.gap || 0)); i++) parts.push(0);
+    });
+    const buf = new ArrayBuffer(44 + parts.length * 2), v = new DataView(buf);
+    const str = (o, x) => [...x].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+    str(0, 'RIFF'); v.setUint32(4, 36 + parts.length * 2, true); str(8, 'WAVEfmt ');
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+    str(36, 'data'); v.setUint32(40, parts.length * 2, true);
+    parts.forEach((x, i) => v.setInt16(44 + i * 2, x * 32767, true));
+    let bin = ''; new Uint8Array(buf).forEach(b => bin += String.fromCharCode(b));
+    return 'data:audio/wav;base64,' + btoa(bin);
+  },
   unlockAudio() {
     try {
-      this._audio = this._audio || new (window.AudioContext || window.webkitAudioContext)();
-      if (this._audio.state === 'suspended') this._audio.resume();
+      // Safari 17+: treat our sound as media playback so the silent switch doesn't mute it
+      if (navigator.audioSession) navigator.audioSession.type = 'playback';
+      if (!this._clips) {
+        this._clips = {
+          tick: new Audio(this._makeWav([{ freq: 660, len: 0.12 }])),
+          go: new Audio(this._makeWav([{ freq: 880, len: 0.25, gap: 0.1 }, { freq: 880, len: 0.25, gap: 0.1 }, { freq: 1100, len: 0.45 }]))
+        };
+      }
+      // Prime each clip inside the tap (muted play + pause) so later plays are allowed
+      if (!this._primed) {
+        Object.values(this._clips).forEach(a => {
+          a.muted = true;
+          const p = a.play();
+          // Only undo the priming if a real beep hasn't taken over this clip meanwhile
+          const done = () => { if (a.muted) { a.pause(); a.currentTime = 0; a.muted = false; } };
+          if (p && p.then) p.then(done, () => { a.muted = false; }); else done();
+        });
+        this._primed = true;
+      }
     } catch (e) {}
   },
-  beep(times = 1, freq = 880, len = 0.25) {
+  // kind: 'tick' (countdown) or 'go' (timer done)
+  beep(kind = 'tick') {
     try {
       this.unlockAudio();
-      const ctx = this._audio, t0 = ctx.currentTime;
-      for (let i = 0; i < times; i++) {
-        const o = ctx.createOscillator(), g = ctx.createGain();
-        o.frequency.value = freq; o.connect(g); g.connect(ctx.destination);
+      const a = this._clips[kind];
+      a.muted = false; a.currentTime = 0;
+      const p = a.play();
+      if (p && p.catch) p.catch(() => this._webBeep(kind));
+    } catch (e) { this._webBeep(kind); }
+  },
+  // Fallback if media playback is refused
+  _webBeep(kind) {
+    try {
+      this._ctx = this._ctx || new (window.AudioContext || window.webkitAudioContext)();
+      if (this._ctx.state !== 'running') this._ctx.resume();
+      const ctx = this._ctx, t0 = ctx.currentTime, n = kind === 'go' ? 3 : 1;
+      for (let i = 0; i < n; i++) {
+        const o = ctx.createOscillator(), g = ctx.createGain(), len = kind === 'go' ? 0.25 : 0.12;
+        o.frequency.value = kind === 'go' ? 880 : 660; o.connect(g); g.connect(ctx.destination);
         const t = t0 + i * 0.35;
         g.gain.setValueAtTime(0.35, t); g.gain.exponentialRampToValueAtTime(0.001, t + len);
         o.start(t); o.stop(t + len + 0.01);

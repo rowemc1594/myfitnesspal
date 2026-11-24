@@ -9,13 +9,22 @@ App.screens.workouts = function(container) {
   selCard.className = 'card';
   selCard.innerHTML = `<div class="row-between" style="margin-bottom:8px">
       <span class="card-title" style="margin:0">Select Workout</span>
-      <button class="btn btn-secondary btn-sm" id="tempo-help-btn" style="min-height:30px">Tempo ?</button>
+      <span class="row" style="gap:6px">
+        <button class="btn btn-secondary btn-sm" id="sound-test-btn" style="min-height:30px" aria-label="Test timer sound">Sound ▶</button>
+        <button class="btn btn-secondary btn-sm" id="tempo-help-btn" style="min-height:30px">Tempo ?</button>
+      </span>
     </div>
     <select id="workout-select">
       <option value="">-- Choose --</option>
       ${PLAN.workoutOrder.map(w => `<option value="${w}" ${todayWorkout===w?'selected':''}>${w} — ${PLAN.focus[w]}</option>`).join('')}
     </select>`;
   container.appendChild(selCard);
+  selCard.querySelector('#sound-test-btn').onclick = () => {
+    App.unlockAudio();
+    App.beep('tick');
+    setTimeout(() => App.beep('go'), 700);
+    App.toast("Hear it? If not: turn up volume. On iPhone, check the silent switch too.", 4000);
+  };
   selCard.querySelector('#tempo-help-btn').onclick = () =>
     App.showModal(`<h2>${PLAN.tempoHelp.title}</h2><div class="mt8">${PLAN.tempoHelp.body.map(b => `<p class="text-sm mt8">${b}</p>`).join('')}</div>
       <p class="text-sm text-muted mt12">Tip: tap any exercise's tempo (like 3-0-1) for its own breakdown.</p>`);
