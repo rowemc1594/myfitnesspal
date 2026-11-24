@@ -77,6 +77,7 @@ Ideas from use, compared to the current app, then planned and shipped in small s
 | 58 | One way to finish: Finish workout, with a check | "Mark all done" at the top competed with "Finish workout" at the bottom | **Mark all done removed.** **Finish workout** finishes straight away if every set is ticked and filled. Otherwise an in-app pop-up lists what's left ("C, F and G aren't finished (5 sets left) · 2 ticked sets are missing numbers") with **Keep going**, **Finish as is (partial)**, or **Mark everything done**, which ticks the remaining sets and fills empty boxes from your target or last time (weight only where needed, nothing for timed holds). | None |
 | 59 | Warm-up out of the exercise strip | A "W" square sat in the strip though the warm-up isn't tracked | Removed; the strip only holds tracked exercises. The warm-up card stays below the strip, collapsible as before. | None |
 | 60 | Meals page leads with day squares | Small day strip sat under the big stat boxes | **This week** squares first (same style as the Workouts strip): day, date, meals eaten "4/5"; green all eaten, orange some, blue border today; tap → that day. Stats (meals eaten, extras, extra calories, most skipped) move to an **On the plan** card below. | None |
+| 61 | Meal plan and coach's notes are read-only | Client could edit both menus and the notes | Editing removed: the coach owns the plan. Meals page shows the plan (both menus, macros, totals) and the notes read-only. Snack quick picks stay editable (the client's own logging shortcuts). Dated plan versions stay under the hood for Phase 2; a "Reset to coach's plan" link appears only if an edit saved during testing exists. | None. Stored data unchanged. |
 
 ## Planned
 
@@ -85,6 +86,17 @@ Ideas from use, compared to the current app, then planned and shipped in small s
 - **Generate the 13 warm-up illustrations** using `images/warmups/PROMPTS.md`, save them with the listed filenames, commit, push. Each starts showing in the app automatically. Then bump `CACHE_NAME` so phones fetch them.
 
 _(empty)_
+
+## Phase 2 (future): coach portal + AI
+
+The client app is built for one coaching business (the coach writes every client's plan). Phase 2:
+- **Coach admin portal:** see every client's usage and progress; build and change each client's plan (meals, workouts, notes).
+- **AI assistant for the coach:** across all clients, surface who's on track and who needs help, with suggestions grounded in her coaching philosophy.
+
+What this means for the client app now:
+- Today all data lives on the phone (localStorage) with no accounts. Phase 2 needs sign-in, a backend, and sync from the phone to the coach.
+- Plans are already **dated versions** (`mealPlans`, each day uses the version in effect), which fits a coach pushing plan changes without rewriting history. Workouts are still fixed in `plan.js` and would need the same treatment.
+- Keep plan content coach-owned (read-only in the client app).
 
 ## Ideas (not yet planned)
 
