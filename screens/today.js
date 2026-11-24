@@ -22,7 +22,7 @@ App.screens.today = function(container) {
     <div class="progress-bar mt8">
       <div class="progress-fill" style="width:${(doneCount/5)*100}%"></div>
     </div>
-    ${nextW ? `<div class="mt8 text-sm">Up next: <span class="text-accent">${nextW}</span></div>` : '<div class="mt8 text-sm text-green">All workouts done this week! 🎉</div>'}
+    ${nextW ? `<div class="mt8 text-sm">Up next: <span class="text-accent">${nextW}</span></div>` : '<div class="mt8 text-sm text-green">All workouts done this week!</div>'}
   `;
   container.appendChild(stripEl);
 
@@ -109,7 +109,7 @@ App.screens.today = function(container) {
     for (let i = 0; i < waterGoal; i++) {
       const g = document.createElement('div');
       g.className = 'water-glass' + (i < waterGlasses ? ' filled' : '');
-      g.textContent = '💧';
+      g.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg>';
       g.addEventListener('click', () => {
         const newVal = i < waterGlasses ? i : i + 1;
         Store.set(d => d.waterLogs[ds] = newVal);

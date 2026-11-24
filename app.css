@@ -55,7 +55,9 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
   font-size: 0.65rem; cursor: pointer; -webkit-tap-highlight-color: transparent;
   min-height: 44px;
 }
-.nav-btn .nav-icon { font-size: 1.3rem; }
+.icon { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.nav-btn .nav-icon { width: 24px; height: 24px; }
+#weight-btn { gap: 6px; }
 .nav-btn.active { color: var(--accent); }
 
 /* ── Cards ── */
@@ -124,7 +126,10 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
   cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
   -webkit-tap-highlight-color: transparent;
 }
-.water-glass.filled { background: #1a6ea8; border-color: #2a9fd6; }
+.water-glass { color: var(--text2); }
+.water-glass .icon { width: 18px; height: 18px; }
+.water-glass.filled { background: var(--text); border-color: var(--text); color: var(--bg); }
+.water-glass.filled .icon { fill: currentColor; }
 
 /* ── Exercise log ── */
 .exercise-card { background: var(--bg3); border-radius: 10px; padding: 12px; margin-bottom: 8px; }
@@ -154,9 +159,10 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
   position: fixed; bottom: calc(var(--nav-h) + var(--safe-b)); left: 0; right: 0;
   background: var(--bg2); border-top: 1px solid var(--border);
   display: flex; align-items: center; padding: 8px 14px; gap: 12px; z-index: 100;
-  transform: translateY(100%); transition: transform 0.25s;
+  opacity: 0; visibility: hidden; transform: translateY(8px);
+  transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
 }
-#rest-timer-bar.visible { transform: translateY(0); }
+#rest-timer-bar.visible { opacity: 1; visibility: visible; transform: translateY(0); }
 #rest-timer-display { font-size: 1.3rem; font-weight: 700; min-width: 60px; }
 #rest-timer-progress { flex: 1; }
 #rest-timer-skip { background: none; border: none; color: var(--text2); font-size: 0.8rem; cursor: pointer; }

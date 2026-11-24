@@ -9,6 +9,8 @@ Ideas from use, compared to the current app, then planned and shipped in small s
 | # | Idea | Before | Change | Data impact |
 |---|------|--------|--------|-------------|
 | 1 | Only ask for weight on first launch; add a Weight button at the top | The prompt reappeared every launch unless you tapped Save. Closing it with ✕ didn't clear the first-run flag. | First-run flag clears as soon as the prompt shows. A **⚖️ Weight** button at the top right opens weight entry anytime (one entry per day; a second entry replaces the first). | None. Uses existing fields. |
+| 2 | Modern monochrome icons, just shapes | Coloured emoji in the nav, Weight button and water counter | Inline SVG line icons in one colour, no image files. The water drops fill solid when ticked. | None |
+| 2a | _(found while testing 2)_ Rest-timer bar covered the bottom nav | The hidden timer bar slid down over the nav, hiding the tabs | When hidden, the bar is now fully invisible and shows only while a timer is running | None |
 
 ## Planned
 
