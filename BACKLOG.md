@@ -42,6 +42,7 @@ Ideas from use, compared to the current app, then planned and shipped in small s
 | 29 | 5-second countdown beeps before Go | Only a beep at zero | A short, lower beep (plus a tiny buzz) at 5, 4, 3, 2, 1, then the higher triple beep at Go. Adding +15 during the countdown resets it. Same for rest, work and DB Complex timers. | None |
 | 29a | _(bug)_ After Skip, the next timer showed only at the top | Skip emptied the inline box but kept its "already drawn" marker, so the next ✓ on that exercise left the box empty and hidden; the app then thought it was scrolled away and showed the top pill | Clearing the box also clears the marker, so every ✓ draws the countdown under its set again. | None |
 | 29b | No confirm on exercise Clear | Clear asked "Sure?" when sets were ticked | Clear empties today's entries for that exercise immediately. Unused tap-twice helper removed. | None |
+| 30 | Rotating tips in the rest row | Middle of the countdown row just said "Rest" | The middle of the rest row is a small banner that slides in a new message every 5 s: first "Up next: set 3", then tips (breathe, shake out your arms, stretch, check your setup…), including "Sip some water · 6 of 16 cups today" from your water log. Tips start at a random point so they vary between rests. Last 5 s: "Get ready…". Range plans now show under the clock ("plan 60-90s"). Tips live in `PLAN.restTips`. | None |
 
 ## Planned
 

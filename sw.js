@@ -1,5 +1,5 @@
 'use strict';
-const CACHE_NAME = 'tracker-v37';
+const CACHE_NAME = 'tracker-v38';
 const APP_FILES = [
   './',
   './index.html',

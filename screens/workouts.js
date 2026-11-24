@@ -443,13 +443,16 @@ function renderInlineTimer(st) {
     slot.className = 'timer-slot active' + (st.doneAt ? ' go' : '') + (st.kind === 'work' ? ' work' : '');
     const big = st.doneAt ? (st.kind === 'work' ? 'Time!' : 'Go!') : App.fmtClock(rem);
     const sub = st.doneAt ? (st.kind === 'work' ? 'Done' : `Start ${st.label.split(' · ')[1] || 'next round'}`)
-      : st.kind === 'work' ? 'Working' : `Rest${st.range ? ` · plan ${st.range}` : ''}`;
+      : st.kind === 'work' ? 'Working'
+      : rem <= 5 ? 'Get ready…'
+      : restTip(st);
     // Only rebuild buttons when the state shape changes, so taps aren't lost mid-tick
     const shape = `${st.kind}|${!!st.doneAt}`;
     if (slot.dataset.shape !== shape) {
       slot.dataset.shape = shape;
       slot.innerHTML = `<div class="ti-row">
-          <div class="ti-time"></div><div class="ti-sub text-sm"></div>
+          <div class="ti-clock"><div class="ti-time"></div>${st.range && !st.doneAt ? `<div class="ti-range">plan ${st.range}</div>` : ''}</div>
+          <div class="ti-sub text-sm"><span class="ti-tip"></span></div>
           ${st.doneAt ? '' : '<button class="tp-btn" data-t="add">+15</button>'}
           <button class="tp-btn" data-t="stop">${st.doneAt ? 'OK' : 'Skip'}</button>
         </div>
@@ -459,8 +462,28 @@ function renderInlineTimer(st) {
       slot.querySelector('[data-t="stop"]').onclick = () => App.timer.stop();
     }
     slot.querySelector('.ti-time').textContent = big;
-    slot.querySelector('.ti-sub').textContent = sub;
+    // Animate in only when the message changes
+    const tip = slot.querySelector('.ti-tip');
+    if (tip.textContent !== sub) {
+      tip.textContent = sub;
+      tip.classList.remove('in'); void tip.offsetWidth; tip.classList.add('in');
+    }
     slot.querySelector('.ti-fill').style.width = pct + '%';
   });
 }
 if (!App._inlineTimerSub) App._inlineTimerSub = App.timer.on(renderInlineTimer);
+
+// Rest-row banner: rotates every 5 s. Starts with what's next, then tips; one tip mentions today's water.
+function restTip(st) {
+  const elapsed = Math.floor((Date.now() - (st.endAt - st.total * 1000)) / 1000);
+  const next = st.label && st.label.split(' · ')[1];
+  const cups = (Store.get().waterLogs || {})[todayStr()] || 0;
+  const goal = Store.get().settings.waterGoalCups || 16;
+  const msgs = [];
+  if (next) msgs.push(`Up next: ${next}`);
+  PLAN.restTips.forEach(t => msgs.push(t === 'Take a sip of water' ? `Sip some water · ${cups} of ${goal} cups today` : t));
+  if (!st.tipStart) st.tipStart = Math.floor(Math.random() * PLAN.restTips.length); // vary tips between rests
+  const i = Math.floor(elapsed / 5);
+  if (i === 0 || !next) return msgs[next ? 0 : (st.tipStart + i) % msgs.length];
+  return msgs[1 + (st.tipStart + i - 1) % (msgs.length - 1)];
+}

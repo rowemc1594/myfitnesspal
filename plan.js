@@ -473,6 +473,20 @@ const PLAN = {
     ]
   },
 
+  // Shown one at a time in the rest-timer row, rotating every few seconds
+  restTips: [
+    'Take a sip of water',
+    'Breathe slow: in 4, out 6',
+    'Shake out your arms',
+    'Stay loose, keep moving',
+    'Roll your shoulders back',
+    'Stretch the muscle you just worked',
+    'Picture a clean next set',
+    'Chalk up or dry your hands',
+    'Check your setup for the next set',
+    'Long exhale, drop your heart rate'
+  ],
+
   // Quick picks for logging off-plan food; values per listed amount (estimates)
   snackPresets: [
     { name: 'Popcorn (air-popped)', amount: '3 cups', cal: 93, p: 3, f: 1 },
