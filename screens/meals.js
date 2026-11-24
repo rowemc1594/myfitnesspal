@@ -73,6 +73,7 @@ App.renderMealChecklist = function(el, ds, { allowReorder = false, collapsible =
             <div>${meal.label.replace(/ \(Post-Workout\)/, '')}${meal.postWorkout ? ' <span class="badge badge-red">Post-workout</span>' : ''}</div>
             ${pos === nextIdx && !reordering ? '<div class="text-sm text-accent">Up next</div>' : ''}
           </div>
+          ${(PLAN.mealTimes || [])[pos] ? `<div class="meal-time">${PLAN.mealTimes[pos]}</div>` : ''}
         </div>
         ${reordering ? '' : `<div class="meal-items">
           ${meal.items.map((item, i) => `

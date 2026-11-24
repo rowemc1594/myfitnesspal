@@ -32,6 +32,7 @@ Ideas from use, compared to the current app, then planned and shipped in small s
 | 20 | Collapse the whole warm-up to make room for the workout | Warm-up list always fully open above the exercises | Tap the Warm-Up header to collapse it to one line ("Warm-up · 6 movements" plus a chevron). Tap again to open. The choice is remembered across workouts and launches. | Adds optional `settings.warmupCollapsed`; missing means open, so no migration needed. |
 | 21 | Tempo guide as a small button, not a card | A full "Tempo Guide" card sat between the warm-up and the exercises | Card removed. A small **Tempo ?** button sits beside "Select workout" and opens the same guide, plus a tip that each exercise's tempo is tappable. | None |
 | 22 | Clear button on each exercise | No way to empty an exercise's entries except deleting each box | A small **Clear** at the right of the "Set · Last · This week" row, above the ✓ column. It empties today's weight/reps for that exercise. If any sets are ticked, it asks first. Past sessions are never touched. | Deletes only today's set entries for that exercise. |
+| 23 | Suggested time on each meal card | Meals had no times | Top-right of each meal card shows a suggested time: 7:00 AM, 10:00 AM, 12:00 PM, 2:30 PM, 6:00 PM. Times follow the meal's position, so after a Reorder the first meal is still 7:00 AM. Edit them in `PLAN.mealTimes` in `plan.js`. | None |
 
 ## Planned
 

@@ -364,6 +364,9 @@ const PLAN = {
     ]
   },
 
+  // Suggested time for each meal slot, in the order you eat them (1st, 2nd, …)
+  mealTimes: ['7:00 AM', '10:00 AM', '12:00 PM', '2:30 PM', '6:00 PM'],
+
   meals: {
     training: [
       {
