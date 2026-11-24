@@ -31,15 +31,11 @@ App.screens.today = function(container) {
   const wp = weekPlan(monday);
 
   stripEl.innerHTML = `
-    <div class="card-title">This Week</div>
-    <div class="week-strip" id="week-strip"></div>
-    <div class="mt8 row-between">
-      <span class="text-sm text-muted">Week progress</span>
+    <div class="row-between" style="margin-bottom:8px">
+      <span class="card-title" style="margin:0">This Week</span>
       <span class="text-sm"><strong>${doneCount}</strong> of 5 done</span>
     </div>
-    <div class="progress-bar mt8">
-      <div class="progress-fill" style="width:${(doneCount/5)*100}%"></div>
-    </div>
+    <div class="week-strip" id="week-strip"></div>
     ${doneCount >= 5 ? '<div class="mt8 text-sm text-green">All workouts done this week!</div>' : ''}
   `;
   container.appendChild(stripEl);
