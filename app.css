@@ -443,3 +443,20 @@ select {
 .mb-key-goal { background: var(--text); height: 2px !important; vertical-align: 3px !important; }
 .mb-key-bar { background: color-mix(in srgb, var(--accent) 55%, var(--bg3)); }
 .mb-key-bar.ok { background: var(--accent); }
+/* Meals page */
+.md-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.md-day { display: flex; flex-direction: column; align-items: center; padding: 6px 2px; border-radius: 8px; border: 0; background: var(--bg3); color: var(--text2); font-size: .6rem; }
+.md-day strong { font-size: .72rem; color: var(--text); }
+.md-day.full { background: color-mix(in srgb, var(--green) 20%, var(--bg3)); }
+.md-day.full strong { color: var(--green); }
+.md-day.some strong { color: var(--accent2); }
+.md-day.future { opacity: .4; }
+.mp-meal { border-top: 1px solid var(--border); padding: 10px 0 4px; margin-top: 8px; }
+.mp-item { display: flex; justify-content: space-between; gap: 8px; font-size: .82rem; padding: 3px 0; }
+.mp-item span:last-child { white-space: nowrap; font-size: .72rem; }
+.mp-item.optional span:first-child { color: var(--text2); font-style: italic; }
+.mp-in { background: var(--bg3); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 8px; font-size: .85rem; width: 100%; font-family: inherit; }
+textarea.mp-in { resize: vertical; line-height: 1.4; }
+.mp-num { width: 58px; flex: none; text-align: center; padding: 8px 4px; }
+.mp-edit-item { margin: 8px 0 8px 10px; padding-left: 8px; border-left: 2px solid var(--border); }
+.mp-opt { font-size: .7rem; color: var(--text2); display: flex; align-items: center; gap: 3px; white-space: nowrap; }

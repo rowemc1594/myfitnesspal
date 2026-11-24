@@ -1,10 +1,10 @@
 'use strict';
 // Build number shown in the header. Bump together with CACHE_NAME in sw.js (tracker-v<BUILD>).
-const BUILD = 66;
+const BUILD = 67;
 /* ── Storage ────────────────────────────────────────────────── */
 const STORAGE_KEY = 'trackerData_v1';
 const BACKUP_KEY  = 'trackerData_backup';
-const SCHEMA_VERSION = 9;
+const SCHEMA_VERSION = 10;
 
 function defaultStore() {
   return {
@@ -19,6 +19,10 @@ function defaultStore() {
     mealOrder: {},        // { 'YYYY-MM-DD': [mealId, ...] }
     extraFoods: {},       // off-plan food: { 'YYYY-MM-DD': [{name, amount, cal, p, f}] }
     skippedDays: {},      // past days marked "skipped, no workout": { 'YYYY-MM-DD': true }
+    mealPlans: [],        // your edited meal plans, dated: [{ from: 'YYYY-MM-DD', training, nonTraining, mealTimes }]
+                          // each day uses the newest version on or before it; none = the coach's plan in plan.js
+    snackPresets: null,   // your quick picks for "+ Add food" (null = plan.js list)
+    dietNotes: null,      // your coach's notes (null = plan.js list)
     settings: { waterUnit: 'oz', waterGoalCups: 16 }, // unit is display only; goal stored in cups
     lastBackup: null,
     firstRun: true
@@ -39,7 +43,9 @@ const migrations = [
   // Past days you mark as skipped (dropped from catch-ups, not shown as missed)
   d => { d.skippedDays = d.skippedDays || {}; return d; },
   // Water shown in ounces by default (goal unchanged: 16 cups = 128 oz, from the coach's plan)
-  d => { d.settings.waterUnit = 'oz'; return d; }
+  d => { d.settings.waterUnit = 'oz'; return d; },
+  // Editable meal plan (dated versions so past days keep their menu), snack picks and notes
+  d => { d.mealPlans = d.mealPlans || []; if (d.snackPresets === undefined) d.snackPresets = null; if (d.dietNotes === undefined) d.dietNotes = null; return d; }
 ];
 
 function runMigrations(data) {
@@ -192,6 +198,37 @@ function workoutExerciseStats(ds, w) {
   }).length;
   return { done, total: plan.exercises.length };
 }
+/* ── Meal plan (dated versions) ──────────────────────────────── */
+const clone = o => JSON.parse(JSON.stringify(o));
+function coachPlan() { return { training: clone(PLAN.meals.training), nonTraining: clone(PLAN.meals.nonTraining), mealTimes: clone(PLAN.mealTimes) }; }
+// The plan in effect on a date: newest saved version on or before it, else the coach's plan
+function mealPlanFor(ds) {
+  const v = (Store.get().mealPlans || []).filter(p => p.from <= ds).sort((a, b) => b.from.localeCompare(a.from))[0];
+  return v || coachPlan();
+}
+function mealsFor(ds) { const p = mealPlanFor(ds); return isTrainingDay(ds) ? p.training : p.nonTraining; }
+// Save a plan from today on. Today's ticks follow their items by text so edits don't shift them.
+function saveMealPlan(plan) {
+  const ds = todayStr();
+  const before = mealPlanFor(ds);
+  Store.set(d => {
+    d.mealPlans = (d.mealPlans || []).filter(p => p.from !== ds);
+    d.mealPlans.push({ from: ds, training: plan.training, nonTraining: plan.nonTraining, mealTimes: plan.mealTimes });
+    const logs = d.mealLogs[ds];
+    if (logs) ['training', 'nonTraining'].forEach(kind => before[kind].forEach(oldMeal => {
+      const t = logs[oldMeal.id];
+      const newMeal = plan[kind].find(m => m.id === oldMeal.id);
+      if (!t || !newMeal) return;
+      const moved = {};
+      oldMeal.items.forEach((txt, i) => { const j = newMeal.items.indexOf(txt); if (t[i] && j >= 0) moved[j] = true; });
+      if (t.closed) moved.closed = true;
+      logs[oldMeal.id] = moved;
+    }));
+  });
+}
+function snackPresets() { return Store.get().snackPresets || PLAN.snackPresets; }
+function dietNotes() { return Store.get().dietNotes || PLAN.dietNotes; }
+
 function workoutsThisWeek(monday) {
   return weekDays(monday).map(d => completedWorkout(fmtDate(d)));
 }
