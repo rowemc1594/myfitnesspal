@@ -70,12 +70,13 @@ App.screens.workouts = function(container) {
 
   function show(name) {
     renderWorkout(name);
-    if (name) { renderMarkAll(name); renderStrip(name); renderFinish(name); initFocus(); }
+    if (name) { renderStrip(name); renderFinish(name); initFocus(); }
   }
 
   // ── Exercise strip + focus mode ──
   // A "unit" is one exercise, or a superset pair (opened and closed together).
   let units = [];
+  let completers = [];   // per set: tick it, filling empty boxes from target or last time
   let pendingAdvance = null;   // unit index waiting for the rest timer before moving on
   let stripEl = null;
   const setsDone = ex => { const logs = Store.get().setLogs; let n = 0; for (let i = 0; i < (ex.sets || 1); i++) if ((logs[`${dayS}_${ex.id}_${i}`] || {}).done) n++; return n; };
@@ -91,8 +92,6 @@ App.screens.workouts = function(container) {
     stripEl = document.createElement('div');
     stripEl.className = 'card ex-strip';
     workoutContainer.prepend(stripEl);
-    const bar = workoutContainer.querySelector('.mark-all-bar');
-    if (bar) bar.after(stripEl);
     refreshStrip();
   }
   function refreshStrip() {
@@ -175,19 +174,12 @@ App.screens.workouts = function(container) {
     App.toast(n ? `${name} completed · ${n} set${n > 1 ? 's are' : ' is'} missing numbers (red boxes)` : name + ' completed', n ? 4000 : 2000);
   };
 
-  function renderMarkAll(name) {
-    if (completedWorkout(dayS) === name) return;
-    const bar = document.createElement('div');
-    bar.className = 'mark-all-bar';
-    bar.innerHTML = `<button class="btn btn-secondary btn-sm" id="mark-all-btn">Mark all done</button>`;
-    workoutContainer.prepend(bar);
-    bar.querySelector('#mark-all-btn').onclick = () => {
-      finishToast(name);
-      setCompleted(dayS, name);
-      App.timer.stop();
-      App.viewDate = isPast ? dayS : null;
-      App.navigate('today');
-    };
+  function doFinish(name) {
+    finishToast(name);
+    setCompleted(dayS, name);
+    App.timer.stop();
+    App.viewDate = isPast ? dayS : null;
+    App.navigate('today');
   }
 
   function renderFinish(name) {
@@ -202,7 +194,26 @@ App.screens.workouts = function(container) {
          <div class="text-sm text-muted mt8">Marks ${name} completed for ${isPast ? dayLabel : 'today'}.</div>`;
     workoutContainer.appendChild(card);
     const fin = card.querySelector('#finish-btn');
-    if (fin) fin.onclick = () => { finishToast(name); setCompleted(dayS, name); App.viewDate = isPast ? dayS : null; App.navigate('today'); };
+    if (fin) fin.onclick = () => {
+      // Anything left? Ask first (in-app pop-up); otherwise finish straight away
+      const left = units.flat().filter(ex => !exComplete(ex));
+      const setsLeft = left.reduce((n, ex) => n + (ex.sets || 1) - setsDone(ex), 0);
+      const missing = missingSets();
+      if (!left.length && !missing) return doFinish(name);
+      const letters = left.map(ex => ex.label.split(' ')[0]);
+      const list = letters.length > 1 ? letters.slice(0, -1).join(', ') + ' and ' + letters.slice(-1) : letters[0];
+      App.showModal(`<h2>Not everything is done</h2>
+        <div class="text-sm mt8">${left.length ? `<strong>${list}</strong> ${left.length > 1 ? "aren't" : "isn't"} finished (${setsLeft} set${setsLeft > 1 ? 's' : ''} left).` : ''}
+          ${missing ? `${left.length ? '<br>' : ''}${missing} ticked set${missing > 1 ? 's are' : ' is'} missing numbers.` : ''}</div>
+        <button class="btn btn-secondary btn-full mt12" id="fin-keep">Keep going</button>
+        <button class="btn btn-secondary btn-full mt8" id="fin-asis">Finish as is${left.length ? ' (partial)' : ''}</button>
+        ${left.length ? `<button class="btn btn-primary btn-full mt8" id="fin-all">Mark everything done</button>
+          <div class="text-sm text-muted mt8">Ticks the remaining sets and fills empty ones from your targets or last time.</div>` : ''}`);
+      document.getElementById('fin-keep').onclick = () => App.closeModal();
+      document.getElementById('fin-asis').onclick = () => { App.closeModal(); doFinish(name); };
+      const all = document.getElementById('fin-all');
+      if (all) all.onclick = () => { completers.forEach(c => c()); App.closeModal(); doFinish(name); };
+    };
 
     const undo = card.querySelector('#undo-finish-btn');
     if (undo) undo.onclick = () => { setCompleted(dayS, null); show(name); };
@@ -211,6 +222,7 @@ App.screens.workouts = function(container) {
   function renderWorkout(name) {
     workoutContainer.innerHTML = '';
     units = [];
+    completers = [];
     if (!name) return;
     const plan = PLAN.workouts[name];
     if (!plan) return;
@@ -491,6 +503,14 @@ App.screens.workouts = function(container) {
         doneBtn.classList.remove('done'); row.classList.remove('is-done');
         Store.set(d => { delete d.setLogs[key]; });
         flag();
+      });
+      completers.push(() => {
+        // Fill only the numbers this exercise needs (no weight for bodyweight, nothing for timed holds)
+        const t = target && target.sets[s];
+        if (needWeight && !wInput.value.trim()) wInput.value = (t && t.weight) || (prev && prev.weight) || '';
+        if (needReps && !rInput.value.trim()) rInput.value = (t && t.reps) || (prev && prev.reps) || '';
+        doneBtn.classList.add('done'); row.classList.add('is-done');
+        saveSet();
       });
       fillers.push(() => {
         if (doneBtn.classList.contains('done') || !target.sets[s]) return false;
