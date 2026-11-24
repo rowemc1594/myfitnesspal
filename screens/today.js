@@ -99,8 +99,7 @@ App.screens.today = function(container) {
         ${note ? `<div class="text-sm text-muted" style="margin-bottom:8px">${note}</div>` : ''}
         ${primary === 'Rest'
           ? `<div style="font-weight:700">Rest day</div><div class="text-sm text-muted">${PLAN.focus.Rest}</div>`
-          : `<button class="btn btn-primary btn-full" id="start-btn">Start ${fullName(primary)}</button>
-             <button class="btn btn-secondary btn-full mt8" id="mark-done-btn">Mark ${primary} done</button>`}
+          : `<button class="btn btn-primary btn-full" id="start-btn">Start ${fullName(primary)}</button>`}
         ${catchUps.length ? `<div class="catchup mt12">
             <div class="text-sm">${catchUps.every(w => wp.unscheduled.includes(w)) ? "Doesn't fit in this week's training days" : 'Missed this week'}: <strong>${catchUps.map(fullName).join(', ')}</strong></div>
             <div class="row mt8" style="flex-wrap:wrap">
@@ -110,7 +109,6 @@ App.screens.today = function(container) {
         <button class="link-btn mt8" id="pick-other-btn">${primary === 'Rest' ? 'Train today instead ›' : 'Pick a different workout ›'}</button>`;
 
       el.querySelectorAll('#start-btn').forEach(b => b.onclick = () => { setPlanned(ds, primary); App.navigate('workouts'); });
-      el.querySelectorAll('#mark-done-btn').forEach(b => b.onclick = () => { setCompleted(ds, primary); App.toast(primary + ' marked done'); App.navigate('today'); });
       el.querySelectorAll('[data-switch]').forEach(b => b.onclick = () => { setPlanned(ds, b.dataset.switch); App.navigate('today'); });
     }
     el.querySelectorAll('#pick-other-btn').forEach(b => b.onclick = () => openDayPicker(ds, todayIdx));

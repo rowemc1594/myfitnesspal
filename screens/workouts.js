@@ -41,7 +41,22 @@ App.screens.workouts = function(container) {
 
   function show(name) {
     renderWorkout(name);
-    if (name) renderFinish(name);
+    if (name) { renderMarkAll(name); renderFinish(name); }
+  }
+
+  // Small "Mark all done" at the top of the workout (same as Finish workout at the bottom)
+  function renderMarkAll(name) {
+    if (completedWorkout(todayS) === name) return;
+    const bar = document.createElement('div');
+    bar.className = 'mark-all-bar';
+    bar.innerHTML = `<button class="btn btn-secondary btn-sm" id="mark-all-btn">Mark all done</button>`;
+    workoutContainer.prepend(bar);
+    bar.querySelector('#mark-all-btn').onclick = () => {
+      setCompleted(todayS, name);
+      App.timer.stop();
+      App.toast(name + ' completed');
+      App.navigate('today');
+    };
   }
 
   function renderFinish(name) {
