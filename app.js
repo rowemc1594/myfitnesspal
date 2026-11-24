@@ -1,6 +1,6 @@
 'use strict';
 // Build number shown in the header. Bump together with CACHE_NAME in sw.js (tracker-v<BUILD>).
-const BUILD = 65;
+const BUILD = 66;
 /* ── Storage ────────────────────────────────────────────────── */
 const STORAGE_KEY = 'trackerData_v1';
 const BACKUP_KEY  = 'trackerData_backup';
@@ -348,63 +348,62 @@ const App = {
     };
   },
 
-  // TEMPORARY (testing): sample data relative to today. Last week fully done (so "Last" and targets
-  // show); this week: past training days done, the 2nd one only partly, the 3rd missed; today has
-  // 3 meals, a snack and some water, workout not started. Remove with the Demo button.
+  // TEMPORARY (testing): 8 weeks of sample data ending today, with realistic gaps:
+  // most workouts done (some partial, a few missed or skipped), weights going up over time,
+  // most days' meals logged (a few days unlogged), snacks, water, daily weigh-ins.
+  // Same result every time (seeded). Today: 3 meals, a snack, some water. Remove with the Demo button.
   loadDemo() {
     const cur = localStorage.getItem(STORAGE_KEY);
     if (cur) localStorage.setItem(BACKUP_KEY, cur);
     const d = defaultStore();
     d.firstRun = false;
+    let seed = 13;
+    const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
     const today = todayStr();
-    const mon = mondayOfWeek(new Date());
-    const tick = (ds, w, n, bump) => PLAN.workouts[w].exercises.slice(0, n).forEach((ex, ei) => {
-      const reps = (String(ex.reps).match(/\d+/) || ['10'])[0];
-      for (let s = 0; s < (ex.sets || 1); s++) d.setLogs[`${ds}_${ex.id}_${s}`] = { weight: String(40 + ei * 10 + bump), reps, done: true };
-    });
-    const eatAll = (ds, skipOne) => {
-      const meals = isTrainingDayIn(d, ds) ? PLAN.meals.training : PLAN.meals.nonTraining;
+    const start = new Date(mondayOfWeek(new Date()).getTime() - 7 * 7 * 86400000);
+    const isTrain = w => ['Day 1', 'Day 2', 'Day 3', 'Day 4'].includes(w);
+    const eat = (ds, w, mealsToEat, skipItems) => {
+      const meals = isTrain(w) ? PLAN.meals.training : PLAN.meals.nonTraining;
       d.mealLogs[ds] = {};
-      meals.forEach((m, mi) => {
+      meals.slice(0, mealsToEat).forEach(m => {
         const t = {};
         m.items.forEach((it, i) => { if (!/^optional/i.test(it)) t[i] = true; });
-        if (skipOne && mi === 2) { delete t[m.items.length > 2 ? 2 : 0]; t.closed = true; }
+        if (skipItems && rnd() < 0.25) { delete t[m.items.length - 1]; t.closed = true; }
         d.mealLogs[ds][m.id] = t;
       });
     };
-    function isTrainingDayIn(data, ds) { return ['Day 1','Day 2','Day 3','Day 4'].includes(data.workoutLogs[ds] || PLAN.schedule[(parseDate(ds).getDay() + 6) % 7]); }
-    // Last week: everything done
-    weekDays(new Date(mon.getTime() - 7 * 86400000)).forEach((dt, i) => {
-      const ds = fmtDate(dt), w = PLAN.schedule[i];
-      if (w !== 'Rest') { d.workoutLogs[ds] = w; d.workoutPlan[ds] = w; if (!PLAN.workouts[w].dbComplex) tick(ds, w, 99, 0); }
-      eatAll(ds, false); d.waterLogs[ds] = 14 + (i % 3); d.supplementLogs[ds] = { pickles: true };
-      d.bodyweight.push({ date: ds, kg: +(188 - i * 0.2).toFixed(1) });
-    });
-    // This week up to yesterday
-    let trainingSeen = 0;
-    weekDays(mon).forEach((dt, i) => {
-      const ds = fmtDate(dt), w = PLAN.schedule[i];
-      if (ds >= today) return;
-      if (w !== 'Rest') {
-        trainingSeen++;
-        if (trainingSeen === 3) return;                    // missed: nothing logged
-        d.workoutLogs[ds] = w; d.workoutPlan[ds] = w;
-        if (!PLAN.workouts[w].dbComplex) tick(ds, w, trainingSeen === 2 ? 5 : 99, 5); // 2nd one partial
+    const SNACKS = PLAN.snackPresets;
+    for (let day = 0; ; day++) {
+      const dt = new Date(start.getTime() + day * 86400000);
+      const ds = fmtDate(dt);
+      if (ds > today) break;
+      const week = Math.floor(day / 7), dow = day % 7;
+      const w = PLAN.schedule[dow];
+      const isToday = ds === today;
+      // Workouts
+      if (w !== 'Rest' && !isToday) {
+        const r = rnd();
+        if (r < 0.08) { /* missed */ }
+        else if (r < 0.12) d.skippedDays[ds] = true;
+        else {
+          d.workoutLogs[ds] = w; d.workoutPlan[ds] = w;
+          const exs = PLAN.workouts[w].exercises || [];
+          const n = PLAN.workouts[w].dbComplex ? 0 : (rnd() < 0.2 ? exs.length - 1 - Math.floor(rnd() * 2) : exs.length);
+          exs.slice(0, n).forEach((ex, ei) => {
+            const reps = (String(ex.reps).match(/\d+/) || ['10'])[0];
+            const wt = 40 + ei * 10 + 5 * Math.floor(week * 0.75);    // goes up most weeks
+            for (let s = 0; s < (ex.sets || 1); s++) d.setLogs[`${ds}_${ex.id}_${s}`] = { weight: String(wt), reps, done: true };
+          });
+        }
       }
-      eatAll(ds, true); d.waterLogs[ds] = 12 + (i % 4); d.supplementLogs[ds] = { pickles: true };
-      d.bodyweight.push({ date: ds, kg: +(186.6 - i * 0.3).toFixed(1) });
-    });
-    // Early in the week there's no 2nd past training day, so show a partial workout today instead
-    const todayW = PLAN.schedule[(parseDate(today).getDay() + 6) % 7];
-    if (trainingSeen < 2 && todayW !== 'Rest' && !PLAN.workouts[todayW].dbComplex) {
-      d.workoutLogs[today] = todayW; d.workoutPlan[today] = todayW; tick(today, todayW, 5, 5);
+      // Meals, snacks, water, pickles, weight
+      if (isToday) eat(ds, w, 3, false);
+      else if (rnd() < 0.85) eat(ds, w, rnd() < 0.8 ? 5 : 4, true);   // ~15% of days not logged
+      if (isToday || rnd() < 0.15) { const sn = SNACKS[Math.floor(rnd() * SNACKS.length)]; d.extraFoods[ds] = [{ name: sn.name, amount: sn.amount, cal: sn.cal, p: sn.p, f: sn.f }]; }
+      d.waterLogs[ds] = isToday ? 6 : 9 + Math.floor(rnd() * 8);
+      if (!isToday && rnd() < 0.9) d.supplementLogs[ds] = { pickles: true };
+      if (rnd() < 0.85 || isToday) d.bodyweight.push({ date: ds, kg: +(192 - day * 0.12 + (rnd() - 0.5) * 1.2).toFixed(1) });
     }
-    // Today: 3 meals, a snack, some water
-    const tMeals = isTrainingDayIn(d, today) ? PLAN.meals.training : PLAN.meals.nonTraining;
-    d.mealLogs[today] = {};
-    tMeals.slice(0, 3).forEach(m => { const t = {}; m.items.forEach((it, i) => { if (!/^optional/i.test(it)) t[i] = true; }); d.mealLogs[today][m.id] = t; });
-    d.extraFoods[today] = [{ name: 'Popcorn (air-popped)', amount: '6 cups', cal: 186, p: 6, f: 2 }];
-    d.waterLogs[today] = 6;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
     this.timer.stop();
     location.reload();

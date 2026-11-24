@@ -67,6 +67,7 @@ Ideas from use, compared to the current app, then planned and shipped in small s
 | 49 | Remove the workout bar from History | Blue/orange bar under the day tiles (#47) repeated what the tiles show | Bar and its key removed. The tiles (green done, orange-tinted "5/8" partial, red missed, grey skipped) and "X of 5 done" carry it. | None |
 | 50 | Remove the week progress bar from Today | "Week progress" row and bar under the week strip repeated the day boxes | Removed. "X of 5 done" moved up next to "This Week". | None |
 | 51 | Today shows partly finished workouts in orange | A completed day was green with a check even if exercises were left out | On the week strip a completed-but-partial day keeps its check but turns **orange**. The completed workout card shows **5/8 exercises** on the right (today and when catching up on a past day). Fully done stays green with no count. | None |
+| 52 | History becomes the long view | History repeated this week's progress (also on Today) | **This week card removed** (Today owns it). New: **Consistency**: last 8 weeks as a grid (rows = weeks, Mon–Sun; green done, orange partial, red missed, dark skipped, empty rest, dashed upcoming), "n/5" per week, and stats: workouts done/planned (%), exercises finished %, full weeks in a row. **Macros by week**: Protein / Calories / Fat toggle; bar per week = average per *logged* day vs plan (white line), bright blue within 10% of plan; "n/7d" days logged (amber when days are missing) and overall % of plan. **Strength**: pick any exercise (grouped by workout); top weight each session as a line, new bests in green, plus best, gain since first, sessions. Bodyweight and Backup unchanged. **Demo** now generates 8 seeded weeks (progressive weights, ~8% missed, ~4% skipped, ~20% partial, ~15% unlogged meal days, snacks, weigh-ins). | None. Reads existing data. |
 
 ## Planned
 
@@ -77,6 +78,9 @@ Ideas from use, compared to the current app, then planned and shipped in small s
 _(empty)_
 
 ## Ideas (not yet planned)
+
+- History: Weeks / Months toggle for Consistency and Macros (once there are a few months of data).
+- Bodyweight: weekly average line over the daily points.
 
 - History: tap a partial day tile (e.g. "5/8") to see which exercises were left out, with a **Log them** button that opens that day. (Tile rather than the thin orange bar, which is hard to tap.)
 

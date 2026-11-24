@@ -50,3 +50,34 @@ App.renderBodyweight = function(el) {
     pts.forEach((p, i) => { ctx.beginPath(); ctx.arc(x(i), y(p.kg), 3, 0, Math.PI * 2); ctx.fill(); });
   }
 };
+
+// Generic line chart: pts = [{ x: 'YYYY-MM-DD', y: number, mark?: bool }]. Marked points are green.
+App.drawLineChart = function(canvas, pts) {
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  canvas.width = w * dpr; canvas.height = h * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = '#999'; ctx.font = '12px sans-serif';
+  if (pts.length < 2) { ctx.fillText('Log more sessions to see a trend', 8, h / 2); return; }
+  const vals = pts.map(p => p.y);
+  let min = Math.min(...vals), max = Math.max(...vals);
+  if (min === max) { min -= 5; max += 5; }
+  const pad = { l: 40, r: 10, t: 10, b: 20 };
+  const x = i => pad.l + (i / (pts.length - 1)) * (w - pad.l - pad.r);
+  const y = v => pad.t + (1 - (v - min) / (max - min)) * (h - pad.t - pad.b);
+  ctx.strokeStyle = '#333'; ctx.lineWidth = 1;
+  [min, (min + max) / 2, max].forEach(v => {
+    ctx.beginPath(); ctx.moveTo(pad.l, y(v)); ctx.lineTo(w - pad.r, y(v)); ctx.stroke();
+    ctx.fillText(Number.isInteger(v) ? v : v.toFixed(1), 2, y(v) + 4);
+  });
+  ctx.fillText(pts[0].x.slice(5), pad.l, h - 4);
+  ctx.textAlign = 'right'; ctx.fillText(pts[pts.length - 1].x.slice(5), w - pad.r, h - 4);
+  ctx.strokeStyle = '#3498db'; ctx.lineWidth = 2; ctx.beginPath();
+  pts.forEach((p, i) => i ? ctx.lineTo(x(i), y(p.y)) : ctx.moveTo(x(i), y(p.y)));
+  ctx.stroke();
+  pts.forEach((p, i) => {
+    ctx.fillStyle = p.mark ? '#2ecc71' : '#3498db';
+    ctx.beginPath(); ctx.arc(x(i), y(p.y), p.mark ? 4 : 3, 0, Math.PI * 2); ctx.fill();
+  });
+};

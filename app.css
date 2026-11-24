@@ -399,21 +399,7 @@ select {
 .past-banner { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--bg2)); }
 .day-chip.skipped .dc-label { color: var(--text2); font-style: italic; }
 .day-chip.viewing { outline: 2px solid var(--accent); outline-offset: -2px; }
-/* History: this week */
 .mt16 { margin-top: 16px; }
-.wk-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-.wk-day { display: flex; flex-direction: column; align-items: center; padding: 6px 2px; border-radius: 8px; background: var(--bg3); font-size: .6rem; color: var(--text2); }
-.wk-day strong { font-size: .62rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-.wk-day.done { background: color-mix(in srgb, var(--green) 18%, var(--bg3)); color: var(--green); }
-.wk-day.missed { background: color-mix(in srgb, var(--red) 15%, var(--bg3)); color: var(--red); }
-.wk-day.skipped strong { font-style: italic; }
-.wk-day.today { outline: 1.5px solid var(--blue); color: var(--blue); }
-.wk-macro { margin-top: 10px; }
-.wk-bar { position: relative; height: 8px; background: var(--bg3); border-radius: 4px; margin: 4px 0; }
-.wk-bar .progress-fill { height: 100%; }
-.wk-pace { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--text); border-radius: 1px; transform: translateX(-1px); }
-.wk-day em { font-style: normal; font-size: .58rem; color: var(--accent2); }
-.wk-day.done.partial { background: color-mix(in srgb, var(--accent2) 14%, var(--bg3)); }
 /* Completed but some exercises left out */
 .day-chip.done.partial { background: color-mix(in srgb, var(--accent2) 15%, var(--bg3)); border-color: var(--accent2); }
 .day-chip.done.partial .dc-label { color: var(--accent2); }
@@ -421,3 +407,39 @@ select {
 .ex-count { text-align: right; color: var(--accent2); line-height: 1.1; }
 .ex-count strong { display: block; font-size: 1.1rem; }
 .ex-count span { font-size: .7rem; }
+/* History: long view */
+.stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.stat-row > div { background: var(--bg3); border-radius: 10px; padding: 8px; text-align: center; }
+.stat-row strong { display: block; font-size: 1.25rem; }
+.stat-row strong span { font-size: .8rem; color: var(--text2); font-weight: 400; }
+.stat-row em { font-style: normal; font-size: .65rem; color: var(--text2); }
+.cg { display: flex; flex-direction: column; gap: 4px; }
+.cg-row { display: grid; grid-template-columns: 38px repeat(7, 1fr) 30px; gap: 4px; align-items: center; }
+.cg-head span { font-size: .6rem; color: var(--text2); text-align: center; }
+.cg-wk { font-size: .65rem; color: var(--text2); }
+.cg-n { font-size: .65rem; color: var(--text2); text-align: right; }
+.cg-cell { display: block; height: 18px; border-radius: 4px; background: var(--bg3); }
+.cg-cell.done { background: var(--green); }
+.cg-cell.partial { background: var(--accent2); }
+.cg-cell.missed { background: var(--red); }
+.cg-cell.skipped { background: #555; }
+.cg-cell.rest { background: var(--bg3); }
+.cg-cell.upcoming { background: transparent; border: 1px dashed var(--border); }
+.cg-key { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+.cg-key i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+.seg { display: inline-flex; background: var(--bg3); border-radius: 999px; padding: 2px; }
+.seg button { background: none; border: 0; color: var(--text2); font-size: .72rem; padding: 4px 10px; border-radius: 999px; }
+.seg button.on { background: var(--accent); color: #fff; }
+.mb { display: flex; gap: 6px; align-items: flex-end; margin-top: 10px; }
+.mb-col { flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 0; }
+.mb-val { font-size: .58rem; color: var(--text2); height: 14px; white-space: nowrap; }
+.mb-track { position: relative; width: 100%; height: 110px; background: var(--bg3); border-radius: 6px; overflow: hidden; }
+.mb-bar { position: absolute; left: 0; right: 0; bottom: 0; background: color-mix(in srgb, var(--accent) 55%, var(--bg3)); border-radius: 6px 6px 0 0; }
+.mb-bar.ok { background: var(--accent); }
+.mb-goal { position: absolute; left: -2px; right: -2px; height: 2px; background: var(--text); }
+.mb-wk { font-size: .6rem; color: var(--text2); margin-top: 4px; }
+.mb-days { font-size: .58rem; color: var(--text2); }
+.mb-days.gap { color: var(--accent2); }
+.mb-key-goal { background: var(--text); height: 2px !important; vertical-align: 3px !important; }
+.mb-key-bar { background: color-mix(in srgb, var(--accent) 55%, var(--bg3)); }
+.mb-key-bar.ok { background: var(--accent); }
