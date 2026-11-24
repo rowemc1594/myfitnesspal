@@ -145,10 +145,10 @@ App.renderMealChecklist = function(el, ds, { allowReorder = false, collapsible =
         </div>`).join('')
       : '<div class="text-sm text-muted mt8">Ate something not on the plan? Add it here and it counts toward today\'s macros.</div>'}`;
     ex.querySelector('[data-add-extra]').onclick = openAddExtra;
-    ex.querySelectorAll('[data-del-extra]').forEach(b => b.onclick = () => App.confirmTap(b, 'Remove?', () => {
+    ex.querySelectorAll('[data-del-extra]').forEach(b => b.onclick = () => {
       Store.set(d => { d.extraFoods[ds].splice(parseInt(b.dataset.delExtra), 1); });
       render();
-    }));
+    });
     el.appendChild(ex);
   }
 
