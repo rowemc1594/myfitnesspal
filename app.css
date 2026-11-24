@@ -217,6 +217,11 @@ select.select-sm { width: auto; padding: 4px 8px; font-size: 0.82rem; min-height
 .set-done-btn.done { background: color-mix(in srgb, var(--green) 20%, var(--bg2)); border-color: var(--green); color: var(--green); }
 .set-grid { display: grid; grid-template-columns: 24px 76px 1fr 40px; gap: 8px; align-items: center; }
 .set-head { font-size: 0.68rem; text-transform: uppercase; letter-spacing: .05em; color: var(--text2); padding: 8px 0 2px; }
+.clear-sets {
+  background: none; border: none; color: var(--text2); font: inherit; font-size: 0.68rem;
+  text-transform: uppercase; letter-spacing: .05em; text-decoration: underline; text-underline-offset: 2px;
+  cursor: pointer; padding: 6px 0; -webkit-tap-highlight-color: transparent;
+}
 .set-head span:nth-child(2) { white-space: nowrap; overflow: visible; }
 .set-row.set-grid { display: grid; }
 .set-grid .set-input { min-width: 0; width: 100%; }

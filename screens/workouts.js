@@ -244,7 +244,7 @@ App.screens.workouts = function(container) {
         </button>` : ''}
       ${lastDate ? `<div class="text-sm text-muted">Last session: ${lastDate} · tap a "Last" value to copy it</div>` : ''}
       <div class="set-grid set-head">
-        <span>Set</span><span>Last</span><span>This week</span><span></span>
+        <span>Set</span><span>Last</span><span>This week</span><button class="clear-sets" aria-label="Clear this exercise's entries">Clear</button>
       </div>
       <div class="set-rows" id="sets-${ex.id}"></div>
     `;
@@ -254,6 +254,12 @@ App.screens.workouts = function(container) {
 
     const setRows = wrap.querySelector(`#sets-${ex.id}`);
     const fillers = [];
+    const clearers = [];
+    wrap.querySelector('.clear-sets').onclick = () => {
+      const ticked = wrap.querySelectorAll('.set-done-btn.done').length;
+      if (ticked && !confirm(`Clear all sets, including ${ticked} ticked set${ticked > 1 ? 's' : ''}?`)) return;
+      clearers.forEach(c => c());
+    };
     const tBtn = wrap.querySelector('.target-line');
     if (tBtn) tBtn.onclick = () => {
       const filled = fillers.filter(f => f()).length;
@@ -282,6 +288,11 @@ App.screens.workouts = function(container) {
       const copy = row.querySelector('button.last-cell');
       if (copy) copy.onclick = () => { wInput.value = prev.weight || ''; rInput.value = prev.reps || ''; saveSet(); };
       // Target fills only sets not yet ticked; returns whether it filled this one
+      clearers.push(() => {
+        wInput.value = ''; rInput.value = '';
+        doneBtn.classList.remove('done'); row.classList.remove('is-done');
+        Store.set(d => { delete d.setLogs[key]; });
+      });
       fillers.push(() => {
         if (doneBtn.classList.contains('done') || !target.sets[s]) return false;
         wInput.value = target.sets[s].weight || wInput.value;
