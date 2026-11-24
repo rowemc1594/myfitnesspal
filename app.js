@@ -322,7 +322,7 @@ const App = {
       const total = Math.max(1, Math.round(opts.seconds));
       this.state = { ...opts, total, endAt: Date.now() + total * 1000, doneAt: null };
       clearInterval(this._iv);
-      this._iv = setInterval(() => this._tick(), 250);
+      this._iv = setInterval(() => this._tick(), 100);
       App.keepAwake(true);
       this._tick();
     },
@@ -330,11 +330,13 @@ const App = {
       if (!this.state || this.state.doneAt) return;
       this.state.endAt += sec * 1000;
       this.state.lastCount = null;
+      if (this.state.countStarted) { App.stopCountdownSound(); this.state.countStarted = false; }
       this.state.total = Math.max(this.state.total, this.remaining());
       this._tick();
     },
     stop() {
       clearInterval(this._iv); this._iv = null;
+      if (this.state && !this.state.doneAt) App.stopCountdownSound();
       this.state = null;
       this._emit();
       App.keepAwake(App.currentScreen === 'workouts');
@@ -343,17 +345,26 @@ const App = {
     _tick() {
       const st = this.state;
       if (!st) return;
-      // Countdown: one short beep at 5, 4, 3, 2, 1 seconds left
+      // Last 5 s: one continuous clip (beep at 5,4,3,2,1 then Go at 0), started at 0:05.
+      // While it plays, the clock follows the clip so numbers and beeps stay in step.
+      const msLeft = st.endAt - Date.now();
+      if (!st.doneAt && !st.countStarted && msLeft <= 5000 && msLeft > 4000) {
+        st.countStarted = true;
+        App.playCountdownSound(5 - msLeft / 1000);
+      }
+      const clip = App._clips && App._clips.count;
+      if (!st.doneAt && st.countStarted && clip && !clip.paused && clip.currentTime > 0) {
+        st.endAt = Date.now() + (5 - clip.currentTime) * 1000;
+      }
       const rem = this.remaining();
       if (!st.doneAt && rem >= 1 && rem <= 5 && st.lastCount !== rem) {
         st.lastCount = rem;
-        App.beep('tick');
         if (navigator.vibrate) navigator.vibrate(60);
       }
       if (!st.doneAt && Date.now() >= st.endAt) {
         st.doneAt = Date.now();
         if (navigator.vibrate) navigator.vibrate([300, 120, 300, 120, 300]);
-        App.beep('go');
+        if (!st.countStarted) App.beep('go'); // countdown clip already includes Go
         if (st.onDone) try { st.onDone(); } catch (e) {}
       }
       // Leave the "Go" state up for 6 s, then clear
@@ -437,7 +448,12 @@ const App = {
       if (!this._clips) {
         this._clips = {
           tick: new Audio(this._makeWav([{ freq: 660, len: 0.12 }])),
-          go: new Audio(this._makeWav([{ freq: 880, len: 0.25, gap: 0.1 }, { freq: 880, len: 0.25, gap: 0.1 }, { freq: 1100, len: 0.45 }]))
+          go: new Audio(this._makeWav([{ freq: 880, len: 0.25, gap: 0.1 }, { freq: 880, len: 0.25, gap: 0.1 }, { freq: 1100, len: 0.45 }])),
+          // 5 ticks exactly 1 s apart, then the Go sound starting at 5.0 s
+          count: new Audio(this._makeWav([
+            ...[0, 1, 2, 3, 4].map(() => ({ freq: 660, len: 0.12, gap: 0.88 })),
+            { freq: 880, len: 0.25, gap: 0.1 }, { freq: 880, len: 0.25, gap: 0.1 }, { freq: 1100, len: 0.45 }
+          ]))
         };
       }
       // Prime each clip inside the tap (muted play + pause) so later plays are allowed
@@ -462,6 +478,18 @@ const App = {
       const p = a.play();
       if (p && p.catch) p.catch(() => this._webBeep(kind));
     } catch (e) { this._webBeep(kind); }
+  },
+  playCountdownSound(offset) {
+    try {
+      this.unlockAudio();
+      const a = this._clips.count;
+      a.muted = false; a.currentTime = Math.max(0, offset);
+      const p = a.play();
+      if (p && p.catch) p.catch(() => this._webBeep('tick'));
+    } catch (e) {}
+  },
+  stopCountdownSound() {
+    try { const a = this._clips && this._clips.count; if (a) { a.pause(); a.currentTime = 0; } } catch (e) {}
   },
   // Fallback if media playback is refused
   _webBeep(kind) {

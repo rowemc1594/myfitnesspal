@@ -21,8 +21,7 @@ App.screens.workouts = function(container) {
   container.appendChild(selCard);
   selCard.querySelector('#sound-test-btn').onclick = () => {
     App.unlockAudio();
-    App.beep('tick');
-    setTimeout(() => App.beep('go'), 700);
+    App.playCountdownSound(0); // the same 5-4-3-2-1-Go clip the timer uses
     App.toast("Hear it? If not: turn up volume. On iPhone, check the silent switch too.", 4000);
   };
   selCard.querySelector('#tempo-help-btn').onclick = () =>
