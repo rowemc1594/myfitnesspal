@@ -55,7 +55,7 @@ App.screens.today = function(container) {
   // ── Meals ──
   const mealsEl = document.createElement('div');
   container.appendChild(mealsEl);
-  App.renderMealChecklist(mealsEl, todayS);
+  App.renderMealChecklist(mealsEl, todayS, { collapsible: true });
 
   // ── Supplements/water quick summary ──
   const suppCard = document.createElement('div');

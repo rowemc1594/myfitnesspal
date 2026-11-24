@@ -1,6 +1,6 @@
 'use strict';
 // Meal checklist for one day; used by both Today and Meals screens
-App.renderMealChecklist = function(el, ds, { allowReorder = false } = {}) {
+App.renderMealChecklist = function(el, ds, { allowReorder = false, collapsible = false } = {}) {
   const training = isTrainingDay(ds);
   const baseMeals = training ? PLAN.meals.training : PLAN.meals.nonTraining;
   const savedOrder = (Store.get().mealOrder || {})[ds] || [];
@@ -37,19 +37,24 @@ App.renderMealChecklist = function(el, ds, { allowReorder = false } = {}) {
     const doneCount = meals.filter(isDone).length;
     const nextIdx = meals.findIndex(m => !isDone(m));
 
-    const hdr = document.createElement('div');
-    hdr.className = 'card';
+    const open = !collapsible || !!App._mealsOpen;
+    const hdr = document.createElement(collapsible ? 'button' : 'div');
+    hdr.className = 'card' + (collapsible ? ' meal-summary' : '');
+    if (collapsible) hdr.setAttribute('aria-expanded', open);
     hdr.innerHTML = `<div class="row-between">
         <div>
           <div class="card-title" style="margin-bottom:4px">${training ? 'Training day' : 'Non-training day'} meals</div>
-          <div><strong>${doneCount}</strong> of ${meals.length} eaten</div>
+          <div><strong>${doneCount}</strong> of ${meals.length} eaten${!open && nextIdx >= 0 ? ` <span class="text-sm text-muted">· Up next: ${meals[nextIdx].label.replace(/ \(Post-Workout\)/, '')}</span>` : ''}</div>
         </div>
         ${allowReorder ? `<button class="btn btn-secondary btn-sm" data-reorder>${reordering ? 'Done' : 'Reorder'}</button>` : ''}
+        ${collapsible ? `<svg class="icon chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>` : ''}
       </div>
       <div class="progress-bar mt8"><div class="progress-fill" style="width:${doneCount / meals.length * 100}%"></div></div>`;
     const rb = hdr.querySelector('[data-reorder]');
     if (rb) rb.onclick = () => { reordering = !reordering; render(); };
+    if (collapsible) hdr.onclick = () => { App._mealsOpen = !open; render(); };
     el.appendChild(hdr);
+    if (!open) return;
 
     meals.forEach((meal, pos) => {
       const done = isDone(meal);

@@ -118,6 +118,9 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
 .checklist-item.checked .check-label { text-decoration: line-through; color: var(--text2); }
 
 /* ── Meals ── */
+.meal-summary { display: block; width: 100%; text-align: left; color: var(--text); font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.meal-summary .chevron { width: 22px; height: 22px; color: var(--text2); transition: transform 0.2s; }
+.meal-summary[aria-expanded="true"] .chevron { transform: rotate(180deg); }
 .meal-card.next { border-color: var(--accent); }
 .meal-card.done { opacity: 0.6; }
 .meal-head { display: flex; align-items: center; gap: 12px; }
