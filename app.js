@@ -1,6 +1,6 @@
 'use strict';
 // Build number shown in the header. Bump together with CACHE_NAME in sw.js (tracker-v<BUILD>).
-const BUILD = 46;
+const BUILD = 47;
 /* ── Storage ────────────────────────────────────────────────── */
 const STORAGE_KEY = 'trackerData_v1';
 const BACKUP_KEY  = 'trackerData_backup';
@@ -226,7 +226,22 @@ const App = {
 
     // Register service worker
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').catch(() => {});
+      navigator.serviceWorker.register('./sw.js').then(reg => {
+        // Check for a new version on every open / return to the app
+        reg.update().catch(() => {});
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') reg.update().catch(() => {});
+        });
+      }).catch(() => {});
+      // When a new version takes over, reload once so it's what you see (not mid-timer)
+      let reloaded = false;
+      const hadController = !!navigator.serviceWorker.controller;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!hadController || reloaded) return;
+        const go = () => { if (!reloaded) { reloaded = true; location.reload(); } };
+        if (this.timer.state) { const iv = setInterval(() => { if (!this.timer.state) { clearInterval(iv); go(); } }, 1000); }
+        else go();
+      });
     }
 
     // First run: ask for bodyweight
