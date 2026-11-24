@@ -75,6 +75,15 @@ App.screens.workouts = function(container) {
   }
 
   // Small "Mark all done" at the top of the workout (same as Finish workout at the bottom)
+  // How many ticked sets on screen are missing a number (for the finish toast)
+  function missingSets() {
+    return new Set([...workoutContainer.querySelectorAll('.set-input.missing')].map(i => i.closest('.set-row'))).size;
+  }
+  const finishToast = name => {
+    const n = missingSets();
+    App.toast(n ? `${name} completed · ${n} set${n > 1 ? 's are' : ' is'} missing numbers (red boxes)` : name + ' completed', n ? 4000 : 2000);
+  };
+
   function renderMarkAll(name) {
     if (completedWorkout(dayS) === name) return;
     const bar = document.createElement('div');
@@ -82,9 +91,9 @@ App.screens.workouts = function(container) {
     bar.innerHTML = `<button class="btn btn-secondary btn-sm" id="mark-all-btn">Mark all done</button>`;
     workoutContainer.prepend(bar);
     bar.querySelector('#mark-all-btn').onclick = () => {
+      finishToast(name);
       setCompleted(dayS, name);
       App.timer.stop();
-      App.toast(name + ' completed');
       App.viewDate = isPast ? dayS : null;
       App.navigate('today');
     };
@@ -102,7 +111,7 @@ App.screens.workouts = function(container) {
          <div class="text-sm text-muted mt8">Marks ${name} completed for ${isPast ? dayLabel : 'today'}.</div>`;
     workoutContainer.appendChild(card);
     const fin = card.querySelector('#finish-btn');
-    if (fin) fin.onclick = () => { setCompleted(dayS, name); App.toast(name + ' completed'); App.viewDate = isPast ? dayS : null; App.navigate('today'); };
+    if (fin) fin.onclick = () => { finishToast(name); setCompleted(dayS, name); App.viewDate = isPast ? dayS : null; App.navigate('today'); };
 
     const undo = card.querySelector('#undo-finish-btn');
     if (undo) undo.onclick = () => { setCompleted(dayS, null); show(name); };
@@ -283,6 +292,9 @@ App.screens.workouts = function(container) {
     const lastDate = last ? parseDate(last.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) : null;
     const target = targetFor(ex, last);
     const workSec = App.parseWorkSeconds(ex.reps);
+    // Which numbers a ticked set needs: timed holds need none; bodyweight moves need reps only
+    const needReps = !workSec;
+    const needWeight = !workSec && !/push ups|hyperextension/i.test(ex.label);
     const restSec = App.parseRestSeconds(ex.rest);
     // Supersets with 0 rest go straight to the next exercise; grouped items with real rest (Rack Pulls phase 1) keep it
     if (restSec > 0) nextInSuperset = null;
@@ -358,6 +370,14 @@ App.screens.workouts = function(container) {
       `;
       const [wInput, rInput] = row.querySelectorAll('.set-input');
       const doneBtn = row.querySelector('.set-done-btn');
+      // Red outline on an empty box once the set is ticked
+      const flag = () => {
+        const done = doneBtn.classList.contains('done');
+        wInput.classList.toggle('missing', done && needWeight && !wInput.value.trim());
+        rInput.classList.toggle('missing', done && needReps && !rInput.value.trim());
+      };
+      wInput.addEventListener('input', flag);
+      rInput.addEventListener('input', flag);
       const copy = row.querySelector('button.last-cell');
       if (copy) copy.onclick = () => { wInput.value = prev.weight || ''; rInput.value = prev.reps || ''; saveSet(); };
       // Target fills only sets not yet ticked; returns whether it filled this one
@@ -365,6 +385,7 @@ App.screens.workouts = function(container) {
         wInput.value = ''; rInput.value = '';
         doneBtn.classList.remove('done'); row.classList.remove('is-done');
         Store.set(d => { delete d.setLogs[key]; });
+        flag();
       });
       fillers.push(() => {
         if (doneBtn.classList.contains('done') || !target.sets[s]) return false;
@@ -378,6 +399,7 @@ App.screens.workouts = function(container) {
         Store.set(d => {
           d.setLogs[key] = { weight: wInput.value, reps: rInput.value, done: doneBtn.classList.contains('done') };
         });
+        flag();
       }
       wInput.addEventListener('change', saveSet);
       rInput.addEventListener('change', saveSet);
@@ -396,6 +418,7 @@ App.screens.workouts = function(container) {
       });
       rowsList.push(row);
       setRows.appendChild(row);
+      flag();
     }
     // Re-attach a running timer after the screen re-renders
     const st = App.timer.state;

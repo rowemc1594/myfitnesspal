@@ -467,3 +467,4 @@ textarea.mp-in { resize: vertical; line-height: 1.4; }
 .timer-slot.paused .ti-time { color: var(--text2); }
 .timer-slot.paused .ti-fill { background: var(--text2); }
 #rest-timer-bar.paused { border-color: var(--text2); }
+.set-input.missing { border-color: var(--red) !important; background: color-mix(in srgb, var(--red) 12%, var(--bg3)) !important; }
