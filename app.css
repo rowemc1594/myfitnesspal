@@ -334,7 +334,7 @@ canvas.chart { width: 100%; height: 100%; }
 .badge-red { background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); }
 .badge-green { background: color-mix(in srgb, var(--green) 20%, transparent); color: var(--green); }
 .divider { height: 1px; background: var(--border); margin: 12px 0; }
-input[type=number], input[type=text] {
+input[type=number], input[type=text], .field input {
   background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
   color: var(--text); font-size: 1rem; padding: 8px 12px;
 }
@@ -347,3 +347,9 @@ select {
 .macro-val { font-size: .95rem; margin: 2px 0 6px; white-space: nowrap; }
 .macro-val strong { font-size: 1.15rem; }
 .meal-macros { font-size: .72rem; font-weight: 400; color: var(--text2); margin-top: 1px; }
+.extra-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--border, #2a2a2a); margin-top: 8px; }
+.preset-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.preset { background: var(--bg3, #2a2a2a); color: inherit; border: 1px solid var(--border, #333); border-radius: 999px; padding: 6px 10px; font-size: .8rem; }
+.field { display: block; font-size: .75rem; color: var(--text2); margin-top: 8px; }
+.field input { display: block; width: 100%; margin-top: 4px; box-sizing: border-box; }
+.xf-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }

@@ -2,7 +2,7 @@
 /* ── Storage ────────────────────────────────────────────────── */
 const STORAGE_KEY = 'trackerData_v1';
 const BACKUP_KEY  = 'trackerData_backup';
-const SCHEMA_VERSION = 6;
+const SCHEMA_VERSION = 7;
 
 function defaultStore() {
   return {
@@ -15,6 +15,7 @@ function defaultStore() {
     waterLogs: {},        // { 'YYYY-MM-DD': number (glasses of 250ml) }
     supplementLogs: {},   // { 'YYYY-MM-DD': { suppId: bool } }
     mealOrder: {},        // { 'YYYY-MM-DD': [mealId, ...] }
+    extraFoods: {},       // off-plan food: { 'YYYY-MM-DD': [{name, amount, cal, p, f}] }
     settings: { waterUnit: 'cups', waterGoalCups: 16 }, // unit is display only; goal stored in cups
     lastBackup: null,
     firstRun: true
@@ -29,7 +30,9 @@ const migrations = [
   d => { if (!['cups', 'oz'].includes(d.settings.waterUnit)) d.settings.waterUnit = 'cups'; return d; },
   d => { if (!(d.settings.waterGoalCups > 0)) d.settings.waterGoalCups = 16; return d; },
   // Picking a workout used to mean "completed"; keep those as completed and also record them as the day's plan
-  d => { d.workoutPlan = Object.assign({}, d.workoutLogs, d.workoutPlan); return d; }
+  d => { d.workoutPlan = Object.assign({}, d.workoutLogs, d.workoutPlan); return d; },
+  // Off-plan food log
+  d => { d.extraFoods = d.extraFoods || {}; return d; }
 ];
 
 function runMigrations(data) {

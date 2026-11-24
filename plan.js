@@ -473,6 +473,22 @@ const PLAN = {
     ]
   },
 
+  // Quick picks for logging off-plan food; values per listed amount (estimates)
+  snackPresets: [
+    { name: 'Popcorn (air-popped)', amount: '3 cups', cal: 93, p: 3, f: 1 },
+    { name: 'Popcorn (movie/butter)', amount: '3 cups', cal: 170, p: 2, f: 11 },
+    { name: 'Chips', amount: '1 oz (~15 chips)', cal: 155, p: 2, f: 10 },
+    { name: 'Chocolate bar', amount: '1 bar (45 g)', cal: 235, p: 3, f: 13 },
+    { name: 'Cookie', amount: '1 medium', cal: 150, p: 2, f: 7 },
+    { name: 'Ice cream', amount: '1/2 cup', cal: 140, p: 2, f: 7 },
+    { name: 'Beer', amount: '12 oz', cal: 150, p: 2, f: 0 },
+    { name: 'Glass of wine', amount: '5 oz', cal: 125, p: 0, f: 0 },
+    { name: 'Pizza', amount: '1 slice', cal: 285, p: 12, f: 10 },
+    { name: 'Protein bar', amount: '1 bar', cal: 200, p: 20, f: 7 },
+    { name: 'Banana', amount: '1 medium', cal: 105, p: 1, f: 0 },
+    { name: 'Peanut butter', amount: '1 tbsp', cal: 95, p: 4, f: 8 }
+  ],
+
   dietNotes: [
     'Use a scale for all weights.',
     'Never lift or do intervals fasted — take BCAAs if training early.',

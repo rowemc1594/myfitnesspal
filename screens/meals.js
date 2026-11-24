@@ -48,6 +48,8 @@ App.renderMealChecklist = function(el, ds, { allowReorder = false, collapsible =
         if (t[i]) eaten[k] += m[k];
       }
     }));
+    const extras = (Store.get().extraFoods || {})[ds] || [];
+    extras.forEach(x => { eaten[0] += x.cal || 0; eaten[1] += x.p || 0; eaten[2] += x.f || 0; });
     const mac = document.createElement('div');
     mac.className = 'card macro-card';
     mac.innerHTML = `<div class="card-title">Today's macros <span class="text-sm text-muted" style="text-transform:none;letter-spacing:0">· estimated</span></div>
@@ -76,9 +78,9 @@ App.renderMealChecklist = function(el, ds, { allowReorder = false, collapsible =
     if (rb) rb.onclick = () => { reordering = !reordering; render(); };
     if (collapsible) hdr.onclick = () => { App._mealsOpen = !open; render(); };
     el.appendChild(hdr);
-    if (!open) return;
 
-    meals.forEach((meal, pos) => {
+
+    (open ? meals : []).forEach((meal, pos) => {
       const done = isDone(meal);
       const t = ticks(meal.id);
       const card = document.createElement('div');
@@ -127,7 +129,70 @@ App.renderMealChecklist = function(el, ds, { allowReorder = false, collapsible =
         setTicks(meal.id, m => { m[i] = !m[i]; });
       });
     });
+
+    // Off-plan food
+    const ex = document.createElement('div');
+    ex.className = 'card';
+    ex.innerHTML = `<div class="row-between">
+        <div class="card-title" style="margin:0">Extras · off-plan</div>
+        <button class="btn btn-secondary btn-sm" data-add-extra>+ Add food</button>
+      </div>
+      ${extras.length ? extras.map((x, i) => `
+        <div class="extra-row">
+          <div style="flex:1"><div>${esc(x.name)}</div>
+            <div class="text-sm text-muted">${x.amount ? esc(x.amount) + ' · ' : ''}${x.cal} cal · ${x.p}g P · ${x.f}g F</div></div>
+          <button class="btn-icon" data-del-extra="${i}" aria-label="Remove ${esc(x.name)}">✕</button>
+        </div>`).join('')
+      : '<div class="text-sm text-muted mt8">Ate something not on the plan? Add it here and it counts toward today\'s macros.</div>'}`;
+    ex.querySelector('[data-add-extra]').onclick = openAddExtra;
+    ex.querySelectorAll('[data-del-extra]').forEach(b => b.onclick = () => {
+      const i = parseInt(b.dataset.delExtra);
+      if (!confirm(`Remove ${extras[i].name}?`)) return;
+      Store.set(d => { d.extraFoods[ds].splice(i, 1); });
+      render();
+    });
+    el.appendChild(ex);
   }
+
+  function openAddExtra() {
+    App.showModal(`<h2>Add food</h2>
+      <p class="text-sm text-muted mt8">Pick a quick estimate or type your own.</p>
+      <div class="preset-list mt8">${PLAN.snackPresets.map((s, i) => `<button class="preset" data-preset="${i}">${s.name}</button>`).join('')}</div>
+      <label class="field mt12">What<input id="xf-name" placeholder="e.g. Popcorn"></label>
+      <label class="field">How much<input id="xf-amount" placeholder="e.g. 3 cups"></label>
+      <div class="xf-grid">
+        <label class="field">Calories<input id="xf-cal" type="number" inputmode="numeric"></label>
+        <label class="field">Protein g<input id="xf-p" type="number" inputmode="numeric"></label>
+        <label class="field">Fat g<input id="xf-f" type="number" inputmode="numeric"></label>
+      </div>
+      <p class="text-sm text-muted" id="xf-hint"></p>
+      <button class="btn btn-primary mt12" id="xf-save" style="width:100%">Add</button>`);
+    const $ = id => document.getElementById(id);
+    let base = null; // preset picked, for scaling by servings
+    document.querySelectorAll('[data-preset]').forEach(b => b.onclick = () => {
+      base = PLAN.snackPresets[parseInt(b.dataset.preset)];
+      $('xf-name').value = base.name; $('xf-amount').value = base.amount;
+      $('xf-cal').value = base.cal; $('xf-p').value = base.p; $('xf-f').value = base.f;
+      $('xf-hint').textContent = `Numbers are for ${base.amount}. Ate more or less? Adjust them.`;
+    });
+    $('xf-save').onclick = () => {
+      const name = $('xf-name').value.trim();
+      const cal = Math.round(parseFloat($('xf-cal').value) || 0);
+      if (!name || !cal) { App.toast('Add a name and calories'); return; }
+      Store.set(d => {
+        d.extraFoods = d.extraFoods || {};
+        (d.extraFoods[ds] = d.extraFoods[ds] || []).push({
+          name, amount: $('xf-amount').value.trim(), cal,
+          p: Math.round(parseFloat($('xf-p').value) || 0), f: Math.round(parseFloat($('xf-f').value) || 0)
+        });
+      });
+      App.closeModal();
+      App.toast(`${name} added`);
+      render();
+    };
+  }
+
+  function esc(t) { return String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]); }
 
   render();
 };
