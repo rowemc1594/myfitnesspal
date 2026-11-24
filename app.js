@@ -175,9 +175,11 @@ const App = {
 
     // First run: ask for bodyweight
     const data = Store.get();
-    if (data.firstRun && !data.bodyweight.length) {
-      setTimeout(() => this.promptInitialWeight(), 0);
+    if (data.firstRun) {
+      Store.set(d => d.firstRun = false);
+      if (!data.bodyweight.length) setTimeout(() => this.openWeightEntry(true), 0);
     }
+    document.getElementById('weight-btn').addEventListener('click', () => this.openWeightEntry(false));
 
     // Nav
     document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -199,18 +201,26 @@ const App = {
     if (fn) fn(container);
   },
 
-  promptInitialWeight() {
-    this.showModal(`<h2>Welcome!</h2>
-      <p class="text-sm text-muted mt8">Enter your current bodyweight to start your log.</p>
+  openWeightEntry(welcome) {
+    const bw = Store.get().bodyweight;
+    const last = bw.length ? bw.slice().sort((a, b) => a.date.localeCompare(b.date))[bw.length - 1] : null;
+    this.showModal(`<h2>${welcome ? 'Welcome!' : 'Enter weight'}</h2>
+      <p class="text-sm text-muted mt8">${welcome ? 'Enter your current bodyweight to start your log. You can add more anytime with the Weight button.' : last ? `Last: ${last.kg} on ${last.date}` : 'No entries yet.'}</p>
       <div class="row mt12">
-        <input type="number" step="0.1" inputmode="decimal" id="first-bw" style="flex:1" placeholder="Weight">
-        <button class="btn btn-primary btn-sm" id="first-bw-save">Save</button>
+        <input type="number" step="0.1" inputmode="decimal" id="bw-entry" style="flex:1" placeholder="Weight">
+        <button class="btn btn-primary btn-sm" id="bw-entry-save">Save</button>
       </div>`);
-    document.getElementById('first-bw-save').onclick = () => {
-      const v = parseFloat(document.getElementById('first-bw').value);
+    document.getElementById('bw-entry-save').onclick = () => {
+      const v = parseFloat(document.getElementById('bw-entry').value);
       if (isNaN(v)) return;
-      Store.set(d => { d.bodyweight.push({ date: todayStr(), kg: v }); d.firstRun = false; });
+      const ds = todayStr();
+      Store.set(d => {
+        d.bodyweight = d.bodyweight.filter(e => e.date !== ds);
+        d.bodyweight.push({ date: ds, kg: v });
+      });
       this.closeModal();
+      this.toast('Weight saved');
+      if (this.currentScreen === 'history') this.navigate('history');
     };
   },
 
