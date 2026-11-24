@@ -151,9 +151,17 @@ App.screens.workouts = function(container) {
         ? `<strong>${top + 5} × ${repsText}</strong> <span class="text-green">(+5)</span>. You hit every set last time.`
         : `<strong>+5 on each set</strong>, ${repsText} reps. You hit every set last time.`;
     } else {
+      // Say why we're not adding weight yet: short sets, missing sets, and (straight sets) lighter sets
+      const why = [];
+      prev.forEach((p, i) => {
+        if (!p) why.push(`set ${i + 1} wasn't logged`);
+        else if (parseInt(p.reps) < goals[i]) why.push(`set ${i + 1} got ${parseInt(p.reps) || 0} of ${goals[i]}`);
+        else if (straight && num(p) !== null && num(p) < top) why.push(`set ${i + 1} was at ${num(p)}`);
+      });
+      const reason = why.length ? ` <span class="text-muted">Last time ${why.join(', ')}.</span>` : '';
       text = straight
-        ? `<strong>${top} × ${repsText}</strong> on all sets, then go up.`
-        : `Same weights as last time; hit <strong>${repsText}</strong> on every set, then go up.`;
+        ? `<strong>${top} × ${repsText}</strong> on all sets, then add 5.${reason}`
+        : `Same weights as last time; hit <strong>${repsText}</strong> on every set, then add 5.${reason}`;
     }
     return { text, sets };
   }
