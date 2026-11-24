@@ -447,7 +447,8 @@ function renderInlineTimer(st) {
       return;
     }
     const rem = App.timer.remaining();
-    const pct = st.doneAt ? 0 : Math.min(100, rem / st.total * 100);
+    // Bar uses exact time left (not whole seconds) so it drains smoothly
+    const pct = st.doneAt ? 0 : Math.max(0, Math.min(100, (st.endAt - Date.now()) / (st.total * 1000) * 100));
     slot.className = 'timer-slot active' + (st.doneAt ? ' go' : '') + (st.kind === 'work' ? ' work' : '') + (!st.doneAt && rem <= 5 ? ' soon' : '');
     const big = st.doneAt ? (st.kind === 'work' ? 'Time!' : 'Go!') : App.fmtClock(rem);
     const sub = st.doneAt ? (st.kind === 'work' ? 'Done' : `Start ${st.label.split(' · ')[1] || 'next round'}`)
