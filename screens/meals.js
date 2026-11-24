@@ -108,7 +108,7 @@ App.renderMealChecklist = function(el, ds, { allowReorder = false, collapsible =
               return `<div class="meal-macros">${g[0]} cal · ${g[1]}g P · ${g[2]}g F</div>`; })() : ''}
             ${pos === nextIdx && !reordering ? '<div class="text-sm text-accent">Up next</div>' : ''}
           </div>
-          ${mealTimes[pos] ? `<div class="meal-time">${mealTimes[pos]}</div>` : ''}
+          ${meal.postWorkout ? '<div class="meal-time">After workout</div>' : mealTimes[pos] ? `<div class="meal-time">${mealTimes[pos]}</div>` : ''}
         </div>
         ${reordering ? '' : `<div class="meal-items">
           ${meal.items.map((item, i) => `
@@ -282,7 +282,7 @@ App.screens.meals = function(container) {
       card.innerHTML = `<div class="row-between"><span class="card-title" style="margin:0">Meal plan</span>${tabs()}</div>
         <div class="text-sm text-muted mt8">${edited ? 'Your edited plan.' : "Your coach's plan."} ${tot[0].toLocaleString()} cal · ${tot[1]}g protein · ${tot[2]}g fat per day</div>
         ${meals.map((m, mi) => `<div class="mp-meal">
-            <div class="row-between"><strong>${esc(m.label)}</strong><span class="text-sm text-muted">${esc((plan.mealTimes || [])[mi] || '')}</span></div>
+            <div class="row-between"><strong>${esc(m.label)}</strong><span class="text-sm text-muted">${m.postWorkout ? 'After workout' : esc((plan.mealTimes || [])[mi] || '')}</span></div>
             ${m.items.map((it, i) => `<div class="mp-item ${isOpt(it) ? 'optional' : ''}"><span>${esc(it)}</span>
               <span class="text-muted">${m.macros && m.macros[i] ? `${m.macros[i][0]} cal · ${m.macros[i][1]}P` : ''}</span></div>`).join('')}
           </div>`).join('')}
@@ -303,7 +303,7 @@ App.screens.meals = function(container) {
         ${meals.map((m, mi) => `<div class="mp-meal edit" data-mi="${mi}">
             <div class="row" style="gap:6px">
               <input class="mp-in" data-f="label" value="${esc(m.label)}" aria-label="Meal name" style="flex:1">
-              <input class="mp-in" data-f="time" value="${esc(draft.mealTimes[mi] || '')}" placeholder="time" aria-label="Suggested time" style="width:84px">
+              <input class="mp-in" data-f="time" value="${m.postWorkout ? 'After workout' : esc(draft.mealTimes[mi] || '')}" ${m.postWorkout ? 'disabled title="Moves with your workout time"' : ''} placeholder="time" aria-label="Suggested time" style="width:84px">
               <button class="btn-icon" data-act="up" ${mi === 0 ? 'disabled' : ''} aria-label="Move meal up">↑</button>
               <button class="btn-icon" data-act="down" ${mi === meals.length - 1 ? 'disabled' : ''} aria-label="Move meal down">↓</button>
               <button class="btn-icon" data-act="del" aria-label="Remove meal">✕</button>
@@ -329,7 +329,7 @@ App.screens.meals = function(container) {
       const pull = () => card.querySelectorAll('.mp-meal.edit').forEach(el => {
         const m = meals[+el.dataset.mi];
         m.label = el.querySelector('[data-f="label"]').value.trim() || m.label;
-        draft.mealTimes[+el.dataset.mi] = el.querySelector('[data-f="time"]').value.trim();
+        if (!m.postWorkout) draft.mealTimes[+el.dataset.mi] = el.querySelector('[data-f="time"]').value.trim();
         m.macros = m.macros || [];
         el.querySelectorAll('.mp-edit-item').forEach(r => {
           const i = +r.dataset.ii;

@@ -1,10 +1,10 @@
 'use strict';
 // Build number shown in the header. Bump together with CACHE_NAME in sw.js (tracker-v<BUILD>).
-const BUILD = 67;
+const BUILD = 68;
 /* ── Storage ────────────────────────────────────────────────── */
 const STORAGE_KEY = 'trackerData_v1';
 const BACKUP_KEY  = 'trackerData_backup';
-const SCHEMA_VERSION = 10;
+const SCHEMA_VERSION = 11;
 
 function defaultStore() {
   return {
@@ -23,7 +23,7 @@ function defaultStore() {
                           // each day uses the newest version on or before it; none = the coach's plan in plan.js
     snackPresets: null,   // your quick picks for "+ Add food" (null = plan.js list)
     dietNotes: null,      // your coach's notes (null = plan.js list)
-    settings: { waterUnit: 'oz', waterGoalCups: 16 }, // unit is display only; goal stored in cups
+    settings: { waterUnit: 'oz', waterGoalCups: 17 }, // unit is display only; goal stored in cups
     lastBackup: null,
     firstRun: true
   };
@@ -45,7 +45,9 @@ const migrations = [
   // Water shown in ounces by default (goal unchanged: 16 cups = 128 oz, from the coach's plan)
   d => { d.settings.waterUnit = 'oz'; return d; },
   // Editable meal plan (dated versions so past days keep their menu), snack picks and notes
-  d => { d.mealPlans = d.mealPlans || []; if (d.snackPresets === undefined) d.snackPresets = null; if (d.dietNotes === undefined) d.dietNotes = null; return d; }
+  d => { d.mealPlans = d.mealPlans || []; if (d.snackPresets === undefined) d.snackPresets = null; if (d.dietNotes === undefined) d.dietNotes = null; return d; },
+  // Coach's PDF says ~4 liters: the old 16-cup default becomes 17 cups (136 oz). A goal you set yourself is kept.
+  d => { if (d.settings.waterGoalCups === 16) d.settings.waterGoalCups = 17; return d; }
 ];
 
 function runMigrations(data) {

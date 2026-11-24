@@ -1,6 +1,6 @@
 'use strict';
 // Keep the number in step with BUILD in app.js
-const CACHE_NAME = 'tracker-v67';
+const CACHE_NAME = 'tracker-v68';
 const APP_FILES = [
   './',
   './index.html',

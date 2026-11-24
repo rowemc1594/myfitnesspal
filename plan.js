@@ -100,27 +100,27 @@ const PLAN = {
           sets: 3, reps: '10', tempo: '2-1-1', rest: '90s'
         },
         {
-          id: 'd3b1', label: 'B1 Rack Pulls from Mid Shin (Phase 1)',
+          id: 'd3b1', label: 'B Rack Pulls from Mid Shin (Phase 1)',
           note: 'Sets of 3 until barely 3 with good form; last 3 sets are working sets',
-          sets: 3, reps: '3', tempo: '2-1-1', rest: '120-180s', supersetGroup: 'B'
+          sets: 3, reps: '3', tempo: '2-1-1', rest: '120-180s'
         },
         {
-          id: 'd3b2', label: 'B2 Rack Pulls (Phase 2)',
+          id: 'd3b2', label: 'C Rack Pulls from Mid Shin (Phase 2)',
           note: '5-min set using Phase 1 working weight; sets of 2, step back count to 10, repeat; rest 20s (30s if form slips)',
-          sets: 1, reps: '5 min', tempo: '2-1-1', rest: '—', supersetGroup: 'B'
+          sets: 1, reps: '5 min', tempo: '2-1-1', rest: '—'
         },
         {
-          id: 'd3c', label: 'C Lat Pulldowns',
+          id: 'd3c', label: 'D Lat Pulldowns',
           note: 'Overhand medium grip',
           sets: 4, reps: '8', tempo: '3-0-1', rest: '60-90s'
         },
         {
-          id: 'd3d', label: 'D Lat Stretchers',
+          id: 'd3d', label: 'E Lat Stretchers',
           note: '',
           sets: 4, reps: '12', tempo: '3-0-1', rest: '60-90s'
         },
         {
-          id: 'd3e', label: 'E Hyperextensions',
+          id: 'd3e', label: 'F Hyperextensions',
           note: '',
           sets: 4, reps: '15', tempo: '3-0-1', rest: '60s'
         }
@@ -384,7 +384,7 @@ const PLAN = {
         id: 'tm2', label: 'Meal 2',
         macros: [[178,23,5],[120,3,1],[81,3,7]], // per item: [cal, protein g, fat g] (estimates)
         items: [
-          '220g cottage cheese',
+          '220g Darigold cottage cheese',
           'Rice cake up to 120 cal',
           '14g almonds'
         ]
@@ -404,7 +404,7 @@ const PLAN = {
         macros: [[175,35,2],[250,4,1]], // per item: [cal, protein g, fat g] (estimates)
         postWorkout: true,
         items: [
-          '45g protein powder',
+          '45g Trutein protein powder',
           'Any low-fat carb up to 250 cal (46–52g carbs)'
         ]
       },
@@ -416,7 +416,7 @@ const PLAN = {
           '150g russet potato (dry weight)',
           '17g cashews',
           'Optional veg',
-          '1 tsp liquid fish oil'
+          '1 tsp Nordic Naturals liquid fish oil (or 3 Nutri-Gold capsules)'
         ]
       }
     ],
@@ -435,7 +435,7 @@ const PLAN = {
         id: 'ntm2', label: 'Meal 2',
         macros: [[175,35,2],[120,3,1],[81,3,7]], // per item: [cal, protein g, fat g] (estimates)
         items: [
-          '45g protein powder',
+          '45g Trutein protein powder',
           'Rice cake up to 120 cal',
           '14g almonds'
         ]
@@ -464,10 +464,10 @@ const PLAN = {
         id: 'ntm5', label: 'Meal 5',
         macros: [[162,21,5],[78,16,1],[147,6,13],[40,0,5]], // per item: [cal, protein g, fat g] (estimates)
         items: [
-          '200g cottage cheese',
-          '20g protein powder',
+          '200g Darigold cottage cheese',
+          '20g Trutein protein powder',
           '25g natural peanut butter',
-          '1 tsp liquid fish oil'
+          '1 tsp Nordic Naturals liquid fish oil (or 3 Nutri-Gold capsules)'
         ]
       }
     ]
@@ -504,14 +504,21 @@ const PLAN = {
   ],
 
   dietNotes: [
-    'Use a scale for all weights.',
-    'Never lift or do intervals fasted — take BCAAs if training early.',
-    'Salad greens are free (unlimited).',
-    'No oil-based marinades.',
-    'Unsweetened almond milk ≈ 35–40 cal/cup.',
-    'Plain Greek yogurt only.',
-    'Target ~16 cups (128 oz) water per day.',
-    'First 14 days: 100% compliance, no cheats.'
+    'First 14 days: 100% compliance, no cheats, deviations or missed meals (sets your calorie baseline).',
+    'Use a digital scale.',
+    'Meats are weighed cooked. Oats, pasta and potatoes are weighed dry. Rice, quinoa and couscous are weighed cooked.',
+    'Move the post-workout meal with your workout time.',
+    'Never lift or do intervals on an empty stomach. Training early and can’t eat? Take BCAAs before.',
+    'Full-fat cheese means cheddar (not skim). For other cheeses, use the substitution calculator.',
+    'Salt your food liberally. Mustard, hot sauce, low-carb ketchup and salsa are fine.',
+    'Marinades are fine, but no oil-based ones (Lawry’s liquid, Frank’s, McCormick packets are good).',
+    'Salad greens are free foods (within reason). Dressings are not.',
+    'Two dill pickles a day for steady sodium.',
+    'Water: about 4 liters (~136 oz) a day, mostly plain water. MIO or Crystal Light in moderation.',
+    'Coffee, tea and diet soda are OK in moderation, with no creamer or milk unless it’s in the plan.',
+    'Greek yogurt is always plain (stevia or a little sugar-free pudding mix to flavor).',
+    'Almond milk, if used, is unsweetened (~35-40 cal per cup).',
+    'Alcohol is processed like fat and slows progress while leaning out.'
   ],
 
   // Daily items that are NOT part of a meal (fish oil and protein powder are ticked within meals)
