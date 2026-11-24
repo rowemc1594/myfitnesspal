@@ -241,7 +241,15 @@ const App = {
     });
 
     this.navigate('today');
-    this.startRestTimerUI();
+    // Timer: refresh pill on scroll; re-acquire wake lock when returning to the app
+    document.getElementById('screen-container').addEventListener('scroll', () => this.timer.state && this._renderTimerPill(), { passive: true });
+    window.addEventListener('scroll', () => this.timer.state && this._renderTimerPill(), { passive: true });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible') return;
+      this._wake = null;
+      if (this.timer.state || this.currentScreen === 'workouts') this.keepAwake(true);
+      this.timer._tick();
+    });
   },
 
   navigate(screen) {
@@ -253,6 +261,8 @@ const App = {
     container.innerHTML = '';
     const fn = this.screens[screen];
     if (fn) fn(container);
+    this.keepAwake(screen === 'workouts' || !!this.timer.state);
+    this._renderTimerPill();
   },
 
   openWeightEntry(welcome) {
@@ -309,57 +319,123 @@ const App = {
     this._toastTimer = setTimeout(() => t.classList.add('hidden'), duration);
   },
 
-  // Rest timer state
-  _restTimer: null,
-  startRestTimer(seconds) {
-    if (this._restTimer) clearInterval(this._restTimer);
-    if (!seconds || seconds <= 0) return;
-    const bar = document.getElementById('rest-timer-bar');
-    const display = document.getElementById('rest-timer-display');
-    const progress = document.getElementById('rest-timer-progress');
-    bar.classList.add('visible');
-    let remaining = seconds;
-    const total = seconds;
-    const tick = () => {
-      display.textContent = remaining + 's';
-      progress.innerHTML = `<div class="progress-bar"><div class="progress-fill" style="width:${(remaining/total)*100}%"></div></div>`;
-      if (remaining <= 0) {
-        clearInterval(this._restTimer);
-        this._restTimer = null;
-        bar.classList.remove('visible');
-        if (navigator.vibrate) navigator.vibrate([200,100,200]);
-        this.beep();
-        this.toast('Rest complete!');
+  // ── Timer ──
+  // One timer at a time. Counts from an end timestamp, so it stays right if the
+  // phone sleeps or the app is backgrounded. Screens subscribe to redraw inline.
+  //   start({ seconds, kind: 'rest'|'work', label, anchor, onDone })
+  //   anchor: a string key the screen uses to show the countdown in place (e.g. 'set:exId:2')
+  timer: {
+    state: null,          // { endAt, total, kind, label, anchor, onDone, doneAt }
+    _iv: null,
+    _subs: new Set(),
+    start(opts) {
+      App.unlockAudio();
+      const total = Math.max(1, Math.round(opts.seconds));
+      this.state = { ...opts, total, endAt: Date.now() + total * 1000, doneAt: null };
+      clearInterval(this._iv);
+      this._iv = setInterval(() => this._tick(), 250);
+      App.keepAwake(true);
+      this._tick();
+    },
+    add(sec) {
+      if (!this.state || this.state.doneAt) return;
+      this.state.endAt += sec * 1000;
+      this.state.total = Math.max(this.state.total, this.remaining());
+      this._tick();
+    },
+    stop() {
+      clearInterval(this._iv); this._iv = null;
+      this.state = null;
+      this._emit();
+      App.keepAwake(App.currentScreen === 'workouts');
+    },
+    remaining() { return this.state ? Math.max(0, Math.ceil((this.state.endAt - Date.now()) / 1000)) : 0; },
+    _tick() {
+      const st = this.state;
+      if (!st) return;
+      if (!st.doneAt && Date.now() >= st.endAt) {
+        st.doneAt = Date.now();
+        if (navigator.vibrate) navigator.vibrate([300, 120, 300, 120, 300]);
+        App.beep(3);
+        if (st.onDone) try { st.onDone(); } catch (e) {}
       }
-      remaining--;
-    };
-    tick();
-    this._restTimer = setInterval(tick, 1000);
+      // Leave the "Go" state up for 6 s, then clear
+      if (st.doneAt && Date.now() - st.doneAt > 6000) { this.stop(); return; }
+      this._emit();
+    },
+    on(fn) { this._subs.add(fn); return () => this._subs.delete(fn); },
+    _emit() { App._renderTimerPill(); this._subs.forEach(fn => { try { fn(this.state); } catch (e) {} }); }
   },
-  startRestTimerUI() {
-    const bar = document.getElementById('rest-timer-bar');
-    bar.innerHTML = `
-      <span id="rest-timer-display">0s</span>
-      <div id="rest-timer-progress" style="flex:1"></div>
-      <button id="rest-timer-skip" class="btn btn-sm btn-secondary">Skip</button>
-    `;
-    document.getElementById('rest-timer-skip').onclick = () => {
-      clearInterval(this._restTimer); this._restTimer = null;
-      bar.classList.remove('visible');
+
+  fmtClock(sec) { return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`; },
+
+  // Pinned pill under the header; tap to jump back to where the timer lives
+  _renderTimerPill() {
+    const pill = document.getElementById('rest-timer-bar');
+    const st = this.timer.state;
+    if (!st) { pill.classList.remove('visible', 'go'); return; }
+    const rem = this.timer.remaining();
+    const anchorEl = st.anchor && document.querySelector(`[data-timer-anchor="${st.anchor}"]`);
+    // Hide the pill while the inline countdown is on screen
+    let inView = false;
+    if (anchorEl) { const r = anchorEl.getBoundingClientRect(); inView = r.bottom > 60 && r.top < window.innerHeight - 80; }
+    pill.classList.toggle('visible', !inView);
+    pill.classList.toggle('go', !!st.doneAt);
+    pill.classList.toggle('work', st.kind === 'work');
+    pill.innerHTML = `<button class="tp-main">${st.doneAt ? (st.kind === 'work' ? 'Time!' : 'Go!') : `${st.kind === 'work' ? 'Work' : 'Rest'} ${this.fmtClock(rem)}`}
+        <span class="tp-label">${st.label || ''}</span></button>
+      ${st.doneAt ? '' : '<button class="tp-btn" data-t="add">+15</button>'}
+      <button class="tp-btn" data-t="stop" aria-label="Stop timer">✕</button>`;
+    pill.querySelector('.tp-main').onclick = () => {
+      const el = st.anchor && document.querySelector(`[data-timer-anchor="${st.anchor}"]`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      else if (st.anchor && this.currentScreen !== 'workouts') { this.navigate('workouts'); setTimeout(() => this._renderTimerPill(), 50); }
     };
+    const add = pill.querySelector('[data-t="add"]');
+    if (add) add.onclick = () => this.timer.add(15);
+    pill.querySelector('[data-t="stop"]').onclick = () => this.timer.stop();
   },
-  beep() {
+
+  // Keep the screen on during a workout (where supported) so the timer can be heard
+  async keepAwake(on) {
+    try {
+      if (on && !this._wake && 'wakeLock' in navigator && document.visibilityState === 'visible') {
+        this._wake = await navigator.wakeLock.request('screen');
+        this._wake.addEventListener('release', () => { this._wake = null; });
+      } else if (!on && this._wake) { await this._wake.release(); this._wake = null; }
+    } catch (e) { this._wake = null; }
+  },
+
+  // Audio must be started from a tap on iOS; called when a timer starts
+  unlockAudio() {
     try {
       this._audio = this._audio || new (window.AudioContext || window.webkitAudioContext)();
-      const o = this._audio.createOscillator(), g = this._audio.createGain();
-      o.frequency.value = 880; o.connect(g); g.connect(this._audio.destination);
-      g.gain.setValueAtTime(0.3, this._audio.currentTime);
-      o.start(); o.stop(this._audio.currentTime + 0.4);
+      if (this._audio.state === 'suspended') this._audio.resume();
     } catch (e) {}
   },
+  beep(times = 1) {
+    try {
+      this.unlockAudio();
+      const ctx = this._audio, t0 = ctx.currentTime;
+      for (let i = 0; i < times; i++) {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.frequency.value = 880; o.connect(g); g.connect(ctx.destination);
+        const t = t0 + i * 0.35;
+        g.gain.setValueAtTime(0.35, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+        o.start(t); o.stop(t + 0.26);
+      }
+    } catch (e) {}
+  },
+  // Rest string -> seconds. Ranges use the low end ("60-90s" -> 60, "0-15s" -> 0); "2 min" -> 120
   parseRestSeconds(restStr) {
     if (!restStr || restStr === 'none' || restStr === '—') return 0;
     const m = restStr.match(/(\d+)/);
-    return m ? parseInt(m[1]) : 60;
-  }
+    if (!m) return 0;
+    return parseInt(m[1]) * (/min/.test(restStr) ? 60 : 1);
+  },
+  // Work duration from reps like "30s each side" or "5 min"; null if not timed
+  parseWorkSeconds(reps) {
+    const m = String(reps || '').match(/(\d+)\s*(s|sec|min)\b/);
+    return m ? parseInt(m[1]) * (m[2] === 'min' ? 60 : 1) : null;
+  },
 };

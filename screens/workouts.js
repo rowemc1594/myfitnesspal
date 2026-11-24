@@ -49,6 +49,7 @@ App.screens.workouts = function(container) {
     workoutContainer.appendChild(card);
     const fin = card.querySelector('#finish-btn');
     if (fin) fin.onclick = () => { setCompleted(todayS, name); App.toast(name + ' completed'); App.navigate('today'); };
+
     const undo = card.querySelector('#undo-finish-btn');
     if (undo) undo.onclick = () => { setCompleted(todayS, null); show(name); };
   }
@@ -113,7 +114,7 @@ App.screens.workouts = function(container) {
         const ssCard = document.createElement('div');
         ssCard.className = 'card';
         ssCard.innerHTML = `<div class="card-title">Superset ${g.group[0].supersetGroup}</div>`;
-        g.group.forEach(ex => ssCard.appendChild(buildExerciseEl(ex)));
+        g.group.forEach((ex, gi) => ssCard.appendChild(buildExerciseEl(ex, gi < g.group.length - 1 ? g.group[gi + 1] : null)));
         workoutContainer.appendChild(ssCard);
       } else {
         const card = document.createElement('div');
@@ -217,7 +218,8 @@ App.screens.workouts = function(container) {
       <p class="text-sm text-muted mt12">Tempo is always three numbers: lower, pause at the bottom, lift.</p>`);
   }
 
-  function buildExerciseEl(ex) {
+  // nextInSuperset: the exercise you go to straight after this one (no rest), or null
+  function buildExerciseEl(ex, nextInSuperset) {
     const wrap = document.createElement('div');
     wrap.className = 'exercise-card';
 
@@ -226,6 +228,11 @@ App.screens.workouts = function(container) {
     const numSets = ex.sets || 1;
     const lastDate = last ? parseDate(last.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) : null;
     const target = targetFor(ex, last);
+    const workSec = App.parseWorkSeconds(ex.reps);
+    const restSec = App.parseRestSeconds(ex.rest);
+    // Supersets with 0 rest go straight to the next exercise; grouped items with real rest (Rack Pulls phase 1) keep it
+    if (restSec > 0) nextInSuperset = null;
+    const anchor = `ex:${ex.id}`;
 
     wrap.innerHTML = `
       <div class="row-between">
@@ -235,7 +242,9 @@ App.screens.workouts = function(container) {
       <div class="exercise-meta">
         ${ex.sets}×${ex.reps}
         ${ex.tempo ? ` · <button class="tempo-chip" aria-label="Explain tempo ${ex.tempo}">${ex.tempo}</button>` : ''}
-        ${ex.rest && ex.rest !== 'none' ? ` · rest ${ex.rest}` : ''}
+        ${nextInSuperset ? ` · then straight to ${nextInSuperset.label.split(' ')[0]}`
+          : ex.rest && ex.rest !== 'none' ? ` · rest ${ex.rest}` : ''}
+        ${workSec ? ` <button class="work-btn" aria-label="Start ${workSec} second timer">▶ ${App.fmtClock(workSec)}</button>` : ''}
       </div>
       ${ex.note ? `<div class="text-sm text-muted" style="margin-bottom:8px">${ex.note}</div>` : ''}
       ${target ? `<button class="target-line" aria-label="Fill sets with target">
@@ -248,6 +257,20 @@ App.screens.workouts = function(container) {
       </div>
       <div class="set-rows" id="sets-${ex.id}"></div>
     `;
+    // One timer slot per exercise; it moves to sit under whichever set started it
+    const slot = document.createElement('div');
+    slot.className = 'timer-slot';
+    slot.dataset.timerAnchor = anchor;
+    const rowsList = [];
+    const placeSlot = idx => {
+      const after = idx == null ? wrap.querySelector('.set-head') : rowsList[idx];
+      after.after(slot);
+    };
+    const wb = wrap.querySelector('.work-btn');
+    if (wb) wb.onclick = () => {
+      placeSlot(null);
+      App.timer.start({ seconds: workSec, kind: 'work', label: ex.label.replace(/^[A-Z]\d?\s+/, ''), anchor, rowIdx: null });
+    };
 
     const tempoBtn = wrap.querySelector('.tempo-chip');
     if (tempoBtn) tempoBtn.onclick = () => showTempo(ex);
@@ -313,12 +336,21 @@ App.screens.workouts = function(container) {
         doneBtn.classList.toggle('done', nowDone);
         row.classList.toggle('is-done', nowDone);
         saveSet();
-        if (nowDone && ex.rest && ex.rest !== 'none') {
-          App.startRestTimer(App.parseRestSeconds(ex.rest));
+        if (!nowDone) return;
+        if (nextInSuperset) { App.toast(`Now ${nextInSuperset.label}, no rest`); return; }
+        if (restSec > 0) {
+          placeSlot(s);
+          const nextSet = s + 1 < numSets ? `set ${s + 2}` : 'next exercise';
+          App.timer.start({ seconds: restSec, kind: 'rest', label: `${ex.label.replace(/^[A-Z]\d?\s+/, '')} · ${nextSet}`, anchor, rowIdx: s, range: /\d+\s*-\s*\d+/.test(ex.rest) ? ex.rest : null });
         }
       });
+      rowsList.push(row);
       setRows.appendChild(row);
     }
+    // Re-attach a running timer after the screen re-renders
+    const st = App.timer.state;
+    if (st && st.anchor === anchor) placeSlot(st.rowIdx);
+    renderInlineTimer(App.timer.state);
     return wrap;
   }
 
@@ -364,7 +396,11 @@ App.screens.workouts = function(container) {
     workoutContainer.appendChild(card);
 
     let currentRound = 0;
-    let timerInterval = null;
+    const slot = document.createElement('div');
+    slot.className = 'timer-slot';
+    slot.dataset.timerAnchor = 'dbc';
+    card.querySelector('.progress-bar').after(slot);
+    card.querySelector('#dc-timer').remove();
 
     card.querySelector('#dc-rest-minus').addEventListener('click', () => {
       roundRestSec = Math.max(15, roundRestSec - 15);
@@ -387,22 +423,44 @@ App.screens.workouts = function(container) {
         card.querySelector('#dc-status').textContent = 'Now do ' + plan.cardioAfter;
         return;
       }
-      card.querySelector('#dc-next-btn').disabled = true;
-      let remaining = roundRestSec;
-      const timerEl = card.querySelector('#dc-timer');
-      clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
-        timerEl.textContent = remaining + 's';
-        if (remaining <= 0) {
-          clearInterval(timerInterval);
-          card.querySelector('#dc-next-btn').disabled = false;
-          card.querySelector('#dc-next-btn').textContent = `Start Round ${currentRound+1}`;
-          timerEl.textContent = 'Go!';
-          if (navigator.vibrate) navigator.vibrate([200,100,200]);
-          App.beep();
-        }
-        remaining--;
-      }, 1000);
+      const btn = card.querySelector('#dc-next-btn');
+      btn.disabled = true;
+      btn.textContent = `Resting before round ${currentRound + 1}…`;
+      App.timer.start({ seconds: roundRestSec, kind: 'rest', label: `DB Complex · round ${currentRound + 1}`, anchor: 'dbc', onDone: () => {
+        btn.disabled = false;
+        btn.textContent = `Start Round ${currentRound + 1}`;
+      } });
     });
   }
 };
+
+// Draws the running timer inside its exercise (or DB Complex) card. One listener for the app.
+function renderInlineTimer(st) {
+  document.querySelectorAll('.timer-slot').forEach(slot => {
+    if (!st || slot.dataset.timerAnchor !== st.anchor) { if (slot.innerHTML) slot.innerHTML = ''; slot.className = 'timer-slot'; return; }
+    const rem = App.timer.remaining();
+    const pct = st.doneAt ? 0 : Math.min(100, rem / st.total * 100);
+    slot.className = 'timer-slot active' + (st.doneAt ? ' go' : '') + (st.kind === 'work' ? ' work' : '');
+    const big = st.doneAt ? (st.kind === 'work' ? 'Time!' : 'Go!') : App.fmtClock(rem);
+    const sub = st.doneAt ? (st.kind === 'work' ? 'Done' : `Start ${st.label.split(' · ')[1] || 'next round'}`)
+      : st.kind === 'work' ? 'Working' : `Rest${st.range ? ` · plan ${st.range}` : ''}`;
+    // Only rebuild buttons when the state shape changes, so taps aren't lost mid-tick
+    const shape = `${st.kind}|${!!st.doneAt}`;
+    if (slot.dataset.shape !== shape) {
+      slot.dataset.shape = shape;
+      slot.innerHTML = `<div class="ti-row">
+          <div class="ti-time"></div><div class="ti-sub text-sm"></div>
+          ${st.doneAt ? '' : '<button class="tp-btn" data-t="add">+15</button>'}
+          <button class="tp-btn" data-t="stop">${st.doneAt ? 'OK' : 'Skip'}</button>
+        </div>
+        <div class="ti-bar"><div class="ti-fill"></div></div>`;
+      const add = slot.querySelector('[data-t="add"]');
+      if (add) add.onclick = () => App.timer.add(15);
+      slot.querySelector('[data-t="stop"]').onclick = () => App.timer.stop();
+    }
+    slot.querySelector('.ti-time').textContent = big;
+    slot.querySelector('.ti-sub').textContent = sub;
+    slot.querySelector('.ti-fill').style.width = pct + '%';
+  });
+}
+if (!App._inlineTimerSub) App._inlineTimerSub = App.timer.on(renderInlineTimer);

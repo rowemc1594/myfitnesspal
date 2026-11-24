@@ -277,18 +277,38 @@ a.btn { text-decoration: none; }
 .pr-badge { font-size: 0.65rem; color: var(--accent2); font-weight: 700; padding: 1px 5px; border-radius: 4px; border: 1px solid var(--accent2); }
 .last-session { font-size: 0.72rem; color: var(--text2); }
 
-/* ── Rest timer ── */
+/* ── Timer ── */
+/* Pinned pill under the header, shown when the inline countdown is scrolled away */
 #rest-timer-bar {
-  position: fixed; bottom: calc(var(--nav-h) + var(--safe-b)); left: 0; right: 0;
-  background: var(--bg2); border-top: 1px solid var(--border);
-  display: flex; align-items: center; padding: 8px 14px; gap: 12px; z-index: 100;
-  opacity: 0; visibility: hidden; transform: translateY(8px);
-  transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
+  position: fixed; top: calc(var(--header-h) + 8px); left: 50%; z-index: 150;
+  transform: translate(-50%, -8px); opacity: 0; visibility: hidden;
+  display: flex; align-items: center; gap: 4px; padding: 4px 4px 4px 6px;
+  background: var(--bg3); border: 1px solid var(--accent); border-radius: 999px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.5); max-width: calc(100vw - 24px);
+  transition: opacity .2s, transform .2s, visibility .2s;
 }
-#rest-timer-bar.visible { opacity: 1; visibility: visible; transform: translateY(0); }
-#rest-timer-display { font-size: 1.3rem; font-weight: 700; min-width: 60px; }
-#rest-timer-progress { flex: 1; }
-#rest-timer-skip { background: none; border: none; color: var(--text2); font-size: 0.8rem; cursor: pointer; }
+#rest-timer-bar.visible { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+#rest-timer-bar.work { border-color: var(--accent2); }
+#rest-timer-bar.go { background: var(--green); border-color: var(--green); animation: ti-pulse .6s ease-in-out infinite alternate; }
+.tp-main { background: none; border: 0; color: var(--text); font-weight: 800; font-size: 1rem; padding: 4px 8px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.tp-label { font-weight: 400; font-size: .72rem; color: var(--text2); margin-left: 6px; }
+#rest-timer-bar.go .tp-label { color: rgba(255,255,255,.85); }
+.tp-btn { background: var(--bg2); color: var(--text); border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px; font-size: .8rem; font-weight: 600; min-height: 34px; }
+
+/* Inline countdown inside the exercise card, under the set you just ticked */
+.timer-slot:empty { display: none; }
+.timer-slot.active { margin: 6px 0; padding: 10px 12px; border-radius: 10px; background: rgba(233,69,96,.12); border: 1px solid var(--accent); }
+.timer-slot.work { background: rgba(245,166,35,.12); border-color: var(--accent2); }
+.timer-slot.go { background: rgba(46,204,113,.18); border-color: var(--green); animation: ti-pulse .6s ease-in-out infinite alternate; }
+.ti-row { display: flex; align-items: center; gap: 8px; }
+.ti-time { font-size: 1.6rem; font-weight: 800; font-variant-numeric: tabular-nums; min-width: 72px; }
+.timer-slot.go .ti-time { color: var(--green); }
+.ti-sub { flex: 1; color: var(--text2); line-height: 1.2; }
+.ti-bar { height: 4px; background: var(--bg3); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+.ti-fill { height: 100%; background: var(--accent); transition: width .25s linear; }
+.timer-slot.work .ti-fill { background: var(--accent2); }
+.work-btn { background: none; border: 1px solid var(--accent2); color: var(--accent2); border-radius: 999px; padding: 2px 10px; font-size: .75rem; font-weight: 700; margin-left: 4px; }
+@keyframes ti-pulse { from { filter: brightness(1); } to { filter: brightness(1.35); } }
 
 /* ── Modal ── */
 #modal-overlay {
