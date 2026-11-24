@@ -443,13 +443,6 @@ select {
 .mb-key-bar { background: color-mix(in srgb, var(--accent) 55%, var(--bg3)); }
 .mb-key-bar.ok { background: var(--accent); }
 /* Meals page */
-.md-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-.md-day { display: flex; flex-direction: column; align-items: center; padding: 6px 2px; border-radius: 8px; border: 0; background: var(--bg3); color: var(--text2); font-size: .6rem; }
-.md-day strong { font-size: .72rem; color: var(--text); }
-.md-day.full { background: color-mix(in srgb, var(--green) 20%, var(--bg3)); }
-.md-day.full strong { color: var(--green); }
-.md-day.some strong { color: var(--accent2); }
-.md-day.future { opacity: .4; }
 .mp-meal { border-top: 1px solid var(--border); padding: 10px 0 4px; margin-top: 8px; }
 .mp-item { display: flex; justify-content: space-between; gap: 8px; font-size: .82rem; padding: 3px 0; }
 .mp-item span:last-child { white-space: nowrap; font-size: .72rem; }
@@ -493,3 +486,8 @@ textarea.mp-in { resize: vertical; line-height: 1.4; }
 .exercise-card.collapsed .exercise-name { margin-bottom: 0; }
 .exercise-card, .warmup-card, #workout-exercise-list > .card { scroll-margin-top: 112px; }
 .xs-tile.cur { border-color: var(--blue); box-shadow: inset 0 0 0 2px var(--blue); }
+
+.md-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+.md-tile { width: auto; min-height: 72px; padding: 6px 2px; }
+.md-tile span { font-size: .66rem; text-transform: uppercase; }
+.md-tile.future { opacity: .45; }

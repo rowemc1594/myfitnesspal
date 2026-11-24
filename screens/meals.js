@@ -246,20 +246,33 @@ App.screens.meals = function(container) {
       });
     }
     const top = Object.entries(skipped).sort((a, b) => b[1] - a[1]).slice(0, 3);
-    card.innerHTML = `<div class="card-title">This week on the plan</div>
+    // Squares first (same pattern as Today and Workouts), numbers below
+    const strip = document.createElement('div');
+    strip.className = 'card';
+    strip.innerHTML = `<div class="row-between" style="margin-bottom:8px">
+        <span class="card-title" style="margin:0">This week</span>
+        <span class="text-sm"><strong>${eaten}</strong> of ${planned} meals</span>
+      </div>
+      <div class="md-strip">${perDay.map((p, i) => {
+        const dt = parseDate(days[i]);
+        const st = p ? (p.n >= p.of ? 'done' : p.n ? 'some' : '') : 'future';
+        return `<button class="xs-tile md-tile ${st}${days[i] === todayS ? ' cur' : ''}" ${p ? `data-day="${p.ds}"` : 'disabled'}>
+          <span>${DOW[i]}</span><b>${dt.getDate()}${p && p.n >= p.of ? ' ✓' : ''}</b><em>${p ? `${p.n}/${p.of}` : '–'}</em></button>`;
+      }).join('')}</div>
+      <div class="text-sm text-muted mt8">Tap a day to open it on Today.</div>`;
+    strip.querySelectorAll('[data-day]').forEach(b => b.onclick = () => {
+      App.viewDate = b.dataset.day < todayS ? b.dataset.day : null;
+      App.navigate('today');
+    });
+    container.appendChild(strip);
+
+    card.innerHTML = `<div class="card-title">On the plan</div>
       <div class="stat-row">
         <div><strong>${eaten}<span>/${planned}</span></strong><em>meals eaten</em></div>
         <div><strong>${xN}</strong><em>off-plan extras</em></div>
         <div><strong>${xCal.toLocaleString()}</strong><em>extra calories</em></div>
       </div>
-      <div class="md-strip">${perDay.map((p, i) => `<button class="md-day ${p ? (p.n >= p.of ? 'full' : p.n ? 'some' : 'none') : 'future'}" ${p ? `data-day="${p.ds}"` : 'disabled'}>
-          <span>${DOW[i]}</span><strong>${p ? `${p.n}/${p.of}` : ''}</strong></button>`).join('')}</div>
-      ${top.length ? `<div class="text-sm mt12"><span class="text-muted">Most skipped (4 weeks):</span> ${top.map(([k, n]) => `<strong>${esc(k)}</strong> ${n}×`).join(' · ')}</div>` : ''}
-      <div class="text-sm text-muted mt8">Tap a day to open it on Today.</div>`;
-    card.querySelectorAll('[data-day]').forEach(b => b.onclick = () => {
-      App.viewDate = b.dataset.day < todayS ? b.dataset.day : null;
-      App.navigate('today');
-    });
+      ${top.length ? `<div class="text-sm"><span class="text-muted">Most skipped (4 weeks):</span> ${top.map(([k, n]) => `<strong>${esc(k)}</strong> ${n}×`).join(' · ')}</div>` : ''}`;
     container.appendChild(card);
   }
 
