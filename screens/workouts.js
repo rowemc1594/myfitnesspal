@@ -10,7 +10,7 @@ App.screens.workouts = function(container) {
   selCard.innerHTML = `<div class="card-title">Select Workout</div>
     <select id="workout-select">
       <option value="">-- Choose --</option>
-      ${PLAN.workoutOrder.map(w => `<option value="${w}" ${todayWorkout===w?'selected':''}>${w} — ${PLAN.workouts[w].label}</option>`).join('')}
+      ${PLAN.workoutOrder.map(w => `<option value="${w}" ${todayWorkout===w?'selected':''}>${w} — ${PLAN.focus[w]}</option>`).join('')}
     </select>`;
   container.appendChild(selCard);
 

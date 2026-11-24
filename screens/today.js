@@ -215,14 +215,10 @@ App.screens.today = function(container) {
   }
 
   function openDayPicker(ds, dayIdx) {
-    const opts = [...PLAN.workoutOrder, 'Rest'];
     const current = logs[ds] || '';
     let html = `<h2 style="margin-bottom:14px">${DOW[dayIdx]}, ${ds}</h2>
-      <div class="section-label">Select workout</div>`;
-    opts.forEach(w => {
-      html += `<div class="checklist-item ${current===w?'checked':''}" data-wo="${w}">
-        <div class="check-box"></div><span class="check-label">${w}</span></div>`;
-    });
+      <div class="section-label">Select workout</div>
+      ${workoutOptionsHTML(current)}`;
     html += `${current ? `<button class="btn btn-secondary btn-full mt12" id="clear-day-btn">Clear day</button>` : ''}`;
     App.showModal(html);
     document.getElementById('modal-content').querySelectorAll('[data-wo]').forEach(el => {

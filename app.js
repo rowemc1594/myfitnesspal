@@ -118,6 +118,13 @@ function workoutsThisWeek(monday) {
   const logs = Store.get().workoutLogs;
   return days.map(d => logs[fmtDate(d)] || null);
 }
+function workoutOptionsHTML(current) {
+  return [...PLAN.workoutOrder, 'Rest'].map(w => `
+    <div class="checklist-item ${current === w ? 'checked' : ''}" data-wo="${w}">
+      <div class="check-box"></div>
+      <div><div class="check-label">${w}</div><div class="text-sm text-muted">${PLAN.focus[w]}</div></div>
+    </div>`).join('');
+}
 function completedCountThisWeek(monday) {
   const entries = workoutsThisWeek(monday);
   return entries.filter(w => w && w !== 'Rest').length;

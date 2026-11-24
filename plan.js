@@ -184,6 +184,15 @@ const PLAN = {
 
   // Default workout per weekday, Monday first
   schedule: ['Day 1', 'Day 2', 'Dumbbell Complex', 'Day 3', 'Day 4', 'Rest', 'Rest'],
+  // One-line description shown under the workout name in pickers
+  focus: {
+    'Day 1': 'Legs · hamstrings, quads, calves',
+    'Day 2': 'Chest & shoulders',
+    'Dumbbell Complex': 'Full-body dumbbell circuit + cardio',
+    'Day 3': 'Back · rows, rack pulls, lats',
+    'Day 4': 'Arms · biceps & triceps',
+    'Rest': 'No training today'
+  },
   shortNames: { 'Day 1': 'Day 1', 'Day 2': 'Day 2', 'Dumbbell Complex': 'DB Cx', 'Day 3': 'Day 3', 'Day 4': 'Day 4', 'Rest': 'Rest' },
 
   warmups: {

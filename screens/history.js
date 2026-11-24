@@ -73,9 +73,8 @@ App.screens.history = function(container) {
 
   function editDay(ds) {
     const cur = Store.get().workoutLogs[ds];
-    const opts = [...PLAN.workoutOrder, 'Rest'];
     App.showModal(`<h2 style="margin-bottom:12px">${ds}</h2>
-      ${opts.map(w => `<div class="checklist-item ${cur===w?'checked':''}" data-wo="${w}"><div class="check-box"></div><span class="check-label">${w}</span></div>`).join('')}
+      ${workoutOptionsHTML(cur)}
       ${cur ? '<button class="btn btn-secondary btn-full mt12" id="del-day">Delete entry</button>' : ''}`);
     const mc = document.getElementById('modal-content');
     mc.querySelectorAll('[data-wo]').forEach(el => el.onclick = () => {
