@@ -105,6 +105,8 @@ Ideas from use, compared to the current app, then planned and shipped in small s
 - **Scan a barcode to add a food.** Point the camera at a package barcode; look it up in Open Food Facts (free, no account or key) and pre-fill name, serving size, calories, protein, carbs and fat for you to check and save as a new food. iPhone Safari has no built-in barcode reader, so use a small scanning library (e.g. ZXing). If the product isn't found, fall back to the manual form with the barcode kept. No server needed. About a day of work.
   - Later (Phase 2, needs a server for the AI key): photo of a **nutrition label** read by AI into the same form. Photo-of-a-plate estimates were ruled out for now: typically 20-40% off, mostly on portions and hidden oils.
 
+- **Look up a food by name.** A 🔍 **Look up** button beside the What line: type "Snickers", tap it, see a few matches with serving size and macros (e.g. "Snickers bar (52 g) · 250 cal · 4 g P · 12 g F"), tap one to fill calories, protein, carbs and fat (still editable). Add a servings box (½, 1, 2…) that scales the numbers. Source: Open Food Facts search (free, no key; good for branded items, results can be messy so show choices with serving size). Optional: USDA FoodData Central for plain foods (very reliable; needs a free key, which would be visible in this public repo, so possibly wait for the Phase 2 server). About half a day (OFF only) to a day (both). Shares the lookup and pick-and-fill step with barcode scanning, so build these two together.
+
 ## Phase 2 (future): coach portal + AI
 
 The client app is built for one coaching business (the coach writes every client's plan). Phase 2:
