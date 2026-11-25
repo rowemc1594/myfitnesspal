@@ -24,7 +24,7 @@ App.screens.today = function(container) {
 
   // ── Week strip ──
   const stripEl = document.createElement('div');
-  stripEl.className = 'card';
+  stripEl.className = 'card sec-workout';
   const doneCount = completedCountThisWeek(monday);
   const todayIdx = days.findIndex(d => fmtDate(d) === todayS);
   const doneThisWeek = new Set(workoutsThisWeek(monday).filter(Boolean));
@@ -77,19 +77,20 @@ App.screens.today = function(container) {
 
   // ── Today workout card ──
   const wCard = document.createElement('div');
-  wCard.className = 'card';
+  wCard.className = 'card sec-workout';
   wCard.id = 'today-workout-card';
   renderTodayWorkout(wCard, viewS);
   container.appendChild(wCard);
 
   // ── Meals ──
   const mealsEl = document.createElement('div');
+  mealsEl.className = 'sec-food-group';
   container.appendChild(mealsEl);
   App.renderMealChecklist(mealsEl, viewS, { collapsible: !viewing }); // open when catching up
 
   // ── Supplements/water quick summary ──
   const suppCard = document.createElement('div');
-  suppCard.className = 'card';
+  suppCard.className = 'card sec-food';
   suppCard.id = 'today-supp-card';
   renderTodaySupps(suppCard, viewS);
   container.appendChild(suppCard);

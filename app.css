@@ -507,3 +507,7 @@ select {
 .meal-card.collapsed .meal-items { display: none; }
 .mp-tile.some { border-color: var(--accent2); background: color-mix(in srgb, var(--accent2) 14%, var(--bg3)); }
 .mp-tile.some em { color: var(--accent2); }
+
+/* Today: section edges (blue = workout, green = food) */
+.card.sec-workout, .card.sec-food, .sec-food-group > .card { border-left: 4px solid var(--accent); }
+.card.sec-food, .sec-food-group > .card { border-left-color: var(--green); }
