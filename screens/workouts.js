@@ -658,7 +658,7 @@ function renderInlineTimer(st) {
           <div class="ti-clock"><div class="ti-time"></div>${st.range && !st.doneAt ? `<div class="ti-range">plan ${st.range}</div>` : ''}</div>
           <div class="ti-sub text-sm"><span class="ti-tip"></span></div>
           ${st.doneAt ? '<button class="tp-btn" data-t="stop">OK</button>' : `<button class="tp-btn" data-t="add">+15</button>
-          <button class="tp-btn tp-pause" data-t="pause">${st.paused ? 'Resume' : 'Pause'}</button>
+          <button class="tp-btn tp-pause tp-icon" data-t="pause" aria-label="${st.paused ? 'Resume' : 'Pause'}">${App.pauseIcon(st.paused)}</button>
           <button class="tp-btn tp-x" data-t="stop" aria-label="Skip rest">✕</button>`}
         </div>
         <div class="ti-bar"><div class="ti-fill"></div></div>`;

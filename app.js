@@ -1,6 +1,6 @@
 'use strict';
 // Build number shown in the header. Bump together with CACHE_NAME in sw.js (tracker-v<BUILD>).
-const BUILD = 78;
+const BUILD = 79;
 /* ── Storage ────────────────────────────────────────────────── */
 const STORAGE_KEY = 'trackerData_v1';
 const BACKUP_KEY  = 'trackerData_backup';
@@ -280,6 +280,10 @@ function lastSession(exerciseId, beforeDate) {
 const App = {
   currentScreen: 'today',
   screens: {},
+  // Pause / play icon for the rest timer buttons (SVG: text glyphs become emoji on iPhone)
+  pauseIcon: paused => paused
+    ? '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9.5-5.5z"/></svg>'
+    : '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="2.5" width="3.5" height="11" rx="1"/><rect x="9.5" y="2.5" width="3.5" height="11" rx="1"/></svg>',
 
   init() {
     Store.load();
@@ -576,7 +580,7 @@ const App = {
     pill.innerHTML = `<button class="tp-main">${st.doneAt ? (st.kind === 'work' ? 'Time!' : 'Go!') : `${st.kind === 'work' ? 'Work' : 'Rest'} ${this.fmtClock(rem)}`}
         <span class="tp-label">${st.label || ''}</span></button>
       ${st.doneAt ? '' : `<button class="tp-btn" data-t="add">+15</button>
-        <button class="tp-btn" data-t="pause">${st.paused ? 'Resume' : 'Pause'}</button>`}
+        <button class="tp-btn tp-icon" data-t="pause" aria-label="${st.paused ? 'Resume' : 'Pause'}">${App.pauseIcon(st.paused)}</button>`}
       <button class="tp-btn tp-x" data-t="stop" aria-label="${st.doneAt ? 'Dismiss' : 'Skip rest'}">✕</button>`;
     pill.querySelector('.tp-main').onclick = () => {
       const el = st.anchor && document.querySelector(`[data-timer-anchor="${st.anchor}"]`);

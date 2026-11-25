@@ -450,7 +450,9 @@ select {
 .mp-in { background: var(--bg3); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 8px; font-size: .85rem; width: 100%; font-family: inherit; }
 .mp-num { width: 58px; flex: none; text-align: center; padding: 8px 4px; }
 /* Timer pause */
-.tp-pause { background: var(--accent); border-color: var(--accent); color: #fff; min-width: 72px; }
+.tp-pause { background: var(--accent); border-color: var(--accent); color: #fff; }
+.tp-icon { width: 40px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+.tp-icon svg { width: 16px; height: 16px; fill: currentColor; }
 .tp-x { padding: 6px 10px; color: var(--text2); }
 .timer-slot.paused { background: var(--bg3); border-color: var(--text2); animation: none; }
 .timer-slot.paused .ti-time { color: var(--text2); }
