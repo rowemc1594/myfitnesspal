@@ -544,3 +544,6 @@ select {
 .exercise-card .ti-time, .exercise-card .ti-clock { min-width: 62px; }
 .ti-sub { min-width: 0; font-size: .85rem; }
 .ss-round .set-row { padding-left: 10px; padding-right: 4px; }
+/* Expanded exercise/superset card gets the same grey outline as the superset bracket in the strip */
+.exercise-card { border: 2px solid transparent; }
+.exercise-card:not(.collapsed) { border-color: var(--text2); }
