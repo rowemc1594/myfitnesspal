@@ -83,6 +83,7 @@ Ideas from use, compared to the current app, then planned and shipped in small s
 | 64 | Rest timer: pause icon instead of a word | The Pause/Resume button was a wide text button that stretched the timer row | Pause is a round icon button (❚❚ while running, ▶ when paused) in both the inline timer and the pinned pill; screen readers still hear "Pause"/"Resume". Drawn as SVG so iPhone doesn't turn it into an emoji. | None |
 | 65 | Bigger meal item check-offs | Item tick boxes were small (18 px) on short, indented rows | Each food is a full-width row (54 px tall, divider lines, darkens when pressed) with a 30 px tick box and larger text; tap anywhere on the line to tick it. | None |
 | 66 | Today: colored section edges | Workout and food cards all looked the same, so the page felt like one long list | Cards on Today get a 4 px left edge: **blue** for workout (This Week, Today's Plan) and **green** for food (macros, meals, extras, daily checklist). Picked from mockups (option 2 over tinted cards). | None |
+| 67 | Softer weight/reps hints | The "wt" and "reps" hints in empty set boxes looked bright, even with the cursor over them | Hints are a dim grey, and dimmer again while the box is being typed in. | None |
 
 ## Planned
 
