@@ -547,3 +547,6 @@ select {
 /* Expanded exercise/superset card gets the same grey outline as the superset bracket in the strip */
 .exercise-card { border: 2px solid transparent; }
 .exercise-card:not(.collapsed) { border-color: var(--text2); }
+/* Superset heading band: title + "how to" line share a slightly lighter background */
+.ss-card:not(.collapsed) > .ex-head { background: color-mix(in srgb, #fff 6%, var(--bg3)); margin: -12px -12px 0; padding: 12px 12px 4px; border-radius: 8px 8px 0 0; }
+.ss-card:not(.collapsed) .ss-how { background: color-mix(in srgb, #fff 6%, var(--bg3)); margin: 0 -12px 10px; padding: 2px 12px 12px; border-radius: 0; color: var(--text2); }

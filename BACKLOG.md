@@ -91,6 +91,7 @@ Ideas from use, compared to the current app, then planned and shipped in small s
 | 72 | Superset row spacing | The A1/A2 tag sat right against the blue "next set" bar | Superset rows get a little inner padding so the tag clears the bar. | None |
 | 73 | Target line removed for now | The Target box took up space and its +5 rule was ours, not the coach's | Target line and "Tap to fill" are hidden on every exercise (switch `TARGETS_OFF` in workouts.js). The Last column stays: tap it to copy last time's numbers. Bring back once the coach sets the progression rule. | None |
 | 74 | Outline the open exercise card | Open cards blended into the dark page, so it was hard to see which one you were on | An expanded exercise or superset card gets a grey outline, matching the superset bracket in the strip. Collapsed cards have none. | None |
+| 75 | Superset heading band | The superset title and "how to" line looked like the content below | When a superset card is open, its title and instruction line sit on a slightly lighter band across the top of the card (grey text instead of the blue box), so they read as a heading. | None |
 
 ## Planned
 
