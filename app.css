@@ -543,3 +543,4 @@ select {
 .exercise-card .timer-slot.active { margin: 6px -8px; padding: 10px 8px; }
 .exercise-card .ti-time, .exercise-card .ti-clock { min-width: 62px; }
 .ti-sub { min-width: 0; font-size: .85rem; }
+.ss-round .set-row { padding-left: 10px; padding-right: 4px; }
