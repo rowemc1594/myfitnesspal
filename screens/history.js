@@ -16,8 +16,8 @@ App.screens.history = function(container) {
     weeks.push(m);
   }
   renderConsistency();
-  renderWeeklyMacros();
   renderStrength();
+  renderWeeklyMacros();
 
   // Bodyweight
   const bwCard = document.createElement('div');
@@ -92,7 +92,7 @@ App.screens.history = function(container) {
 
   function renderConsistency() {
     const card = document.createElement('div');
-    card.className = 'card';
+    card.className = 'card sec-workout';
     let doneN = 0, target = 0, exDone = 0, exTotal = 0;
     const rows = weeks.map(mon => {
       const days = weekDays(mon).map(fmtDate);
@@ -134,7 +134,7 @@ App.screens.history = function(container) {
 
   function renderWeeklyMacros() {
     const card = document.createElement('div');
-    card.className = 'card';
+    card.className = 'card sec-food';
     const METRICS = [['Protein', 1, 'g'], ['Calories', 0, ''], ['Fat', 2, 'g']];
     let metric = 0;
     // Per week: averages per LOGGED day (unlogged days would drag averages down)
@@ -175,7 +175,7 @@ App.screens.history = function(container) {
 
   function renderStrength() {
     const card = document.createElement('div');
-    card.className = 'card';
+    card.className = 'card sec-workout';
     // Top weight per session for each exercise
     const series = {};
     Object.entries(data.setLogs).forEach(([key, v]) => {
