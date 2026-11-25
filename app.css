@@ -488,3 +488,12 @@ select {
 .md-tile { width: auto; min-height: 72px; padding: 6px 2px; }
 .md-tile span { font-size: .66rem; text-transform: uppercase; }
 .md-tile.future { opacity: .45; }
+/* Meal plan: squares + collapsible meals (same pattern as Workouts) */
+.mp-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.mp-tile { width: auto; min-height: 68px; }
+.mp-head { display: flex; align-items: center; gap: 8px; width: 100%; background: none; border: 0; color: var(--text); text-align: left; padding: 0; cursor: pointer; }
+.mp-name { flex: 1; }
+.mp-head .chevron { width: 18px; height: 18px; color: var(--text2); transform: rotate(180deg); transition: transform .2s; }
+.mp-meal.collapsed .chevron { transform: none; }
+.mp-meal.collapsed .mp-body { display: none; }
+.mp-body { margin-top: 6px; }

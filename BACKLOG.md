@@ -78,6 +78,7 @@ Ideas from use, compared to the current app, then planned and shipped in small s
 | 59 | Warm-up out of the exercise strip | A "W" square sat in the strip though the warm-up isn't tracked | Removed; the strip only holds tracked exercises. The warm-up card stays below the strip, collapsible as before. | None |
 | 60 | Meals page leads with day squares | Small day strip sat under the big stat boxes | **This week** squares first (same style as the Workouts strip): day, date, meals eaten "4/5"; green all eaten, orange some, blue border today; tap → that day. Stats (meals eaten, extras, extra calories, most skipped) move to an **On the plan** card below. | None |
 | 61 | Meal plan and coach's notes are read-only | Client could edit both menus and the notes | Editing removed: the coach owns the plan. Meals page shows the plan (both menus, macros, totals) and the notes read-only. Snack quick picks stay editable (the client's own logging shortcuts). Dated plan versions stay under the hood for Phase 2; a "Reset to coach's plan" link appears only if an edit saved during testing exists. | None. Stored data unchanged. |
+| 62 | Meal plan as squares + collapsible meals | The plan was one long list of every meal and item | Same pattern as Workouts: a row of **M1–M5** squares (time, calories) and each meal collapses to one line (name, time, calories, protein, chevron). Tap a square to open that meal and close the others; tap a meal's line to open/close just it. The next meal by time starts open (first meal on the other menu). | None |
 
 ## Planned
 

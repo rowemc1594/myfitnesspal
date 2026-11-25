@@ -287,20 +287,49 @@ App.screens.meals = function(container) {
     const totals = meals => meals.reduce((t, m) => { (m.macros || []).forEach((x, i) => { if (!isOpt(m.items[i])) for (let k = 0; k < 3; k++) t[k] += x[k] || 0; }); return t; }, [0, 0, 0]);
     const tabs = () => `<span class="seg">${[['training', 'Training day'], ['nonTraining', 'Rest day']].map(([k, l]) => `<button data-kind="${k}" class="${k === kind ? 'on' : ''}">${l}</button>`).join('')}</span>`;
 
+    // Which meal starts open: the next one by time today (else the first)
+    const toMin = t => { const m = /(\d+):(\d+)\s*(AM|PM)/i.exec(t || ''); return m ? (+m[1] % 12 + (/pm/i.test(m[3]) ? 12 : 0)) * 60 + +m[2] : null; };
+    let openIdx = null;
+
     function view() {
       const plan = mealPlanFor(todayS);
       const meals = plan[kind];
+      const times = meals.map((m, mi) => m.postWorkout ? 'After workout' : (plan.mealTimes || [])[mi] || '');
+      if (openIdx === null || openIdx >= meals.length) {
+        const now = new Date().getHours() * 60 + new Date().getMinutes();
+        const isToday = kind === (isTrainingDay(todayS) ? 'training' : 'nonTraining');
+        const i = isToday ? times.findIndex(t => toMin(t) !== null && toMin(t) >= now - 30) : 0;
+        openIdx = i >= 0 ? i : 0;
+      }
       const tot = totals(meals);
+      const mTot = m => totals([m]);
       card.innerHTML = `<div class="row-between"><span class="card-title" style="margin:0">Meal plan</span>${tabs()}</div>
         <div class="text-sm text-muted mt8">${edited ? 'Edited plan (from testing).' : "Your coach's plan."} ${tot[0].toLocaleString()} cal · ${tot[1]}g protein · ${tot[2]}g fat per day</div>
-        ${meals.map((m, mi) => `<div class="mp-meal">
-            <div class="row-between"><strong>${esc(m.label)}</strong><span class="text-sm text-muted">${m.postWorkout ? 'After workout' : esc((plan.mealTimes || [])[mi] || '')}</span></div>
-            ${m.items.map((it, i) => `<div class="mp-item ${isOpt(it) ? 'optional' : ''}"><span>${esc(it)}</span>
-              <span class="text-muted">${m.macros && m.macros[i] ? `${m.macros[i][0]} cal · ${m.macros[i][1]}P` : ''}</span></div>`).join('')}
+        <div class="mp-strip mt8">${meals.map((m, mi) => `<button class="xs-tile mp-tile${mi === openIdx ? ' cur' : ''}" data-mi="${mi}">
+            <b>M${mi + 1}</b><span>${esc(times[mi].replace(' AM', 'a').replace(' PM', 'p'))}</span><em>${mTot(m)[0]} cal</em></button>`).join('')}</div>
+        ${meals.map((m, mi) => `<div class="mp-meal${mi === openIdx ? '' : ' collapsed'}" data-meal="${mi}">
+            <button class="mp-head" aria-expanded="${mi === openIdx}">
+              <span class="mp-name"><strong>${esc(m.label.replace(/ \(Post-Workout\)/, ''))}</strong>${m.postWorkout ? ' <span class="badge badge-red">Post-workout</span>' : ''}
+                <span class="text-sm text-muted" style="display:block">${esc(times[mi])}${times[mi] ? ' · ' : ''}${mTot(m)[0]} cal · ${mTot(m)[1]}g P</span></span>
+              <svg class="icon chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <div class="mp-body">${m.items.map((it, i) => `<div class="mp-item ${isOpt(it) ? 'optional' : ''}"><span>${esc(it)}</span>
+              <span class="text-muted">${m.macros && m.macros[i] ? `${m.macros[i][0]} cal · ${m.macros[i][1]}P` : ''}</span></div>`).join('')}</div>
           </div>`).join('')}
         <div class="text-sm text-muted mt12">Your coach sets this plan.</div>
         ${edited ? '<button class="link-btn mt8" id="mp-reset">Reset to coach\'s plan</button>' : ''}`;
-      card.querySelectorAll('[data-kind]').forEach(b => b.onclick = () => { kind = b.dataset.kind; view(); });
+      card.querySelectorAll('[data-kind]').forEach(b => b.onclick = () => { kind = b.dataset.kind; openIdx = null; view(); });
+      // Square: open that meal, close the others
+      card.querySelectorAll('.mp-tile').forEach(b => b.onclick = () => {
+        openIdx = +b.dataset.mi; view();
+        card.querySelector(`[data-meal="${openIdx}"]`).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
+      // Header: toggle just this meal
+      card.querySelectorAll('.mp-head').forEach(h => h.onclick = () => {
+        const el = h.closest('.mp-meal');
+        el.classList.toggle('collapsed');
+        h.setAttribute('aria-expanded', !el.classList.contains('collapsed'));
+      });
       const rs = card.querySelector('#mp-reset');
       if (rs) rs.onclick = () => { saveMealPlan(coachPlan()); App.toast("Back to the coach's plan from today"); App.navigate('meals'); };
     }
