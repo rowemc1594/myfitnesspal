@@ -82,8 +82,9 @@ App.screens.workouts = function(container) {
   const setsDone = ex => { const logs = Store.get().setLogs; let n = 0; for (let i = 0; i < (ex.sets || 1); i++) if ((logs[`${dayS}_${ex.id}_${i}`] || {}).done) n++; return n; };
   const exComplete = ex => setsDone(ex) >= (ex.sets || 1);
   const unitComplete = u => u.every(exComplete);
-  const cardOf = ex => document.getElementById('ex-' + ex.id);
-  const setUnitOpen = (u, open) => u.forEach(ex => { const c = cardOf(ex); if (c) c.classList.toggle('collapsed', !open); });
+  let cardMap = new Map();   // exercise id -> its card (a superset card holds several)
+  const cardOf = ex => cardMap.get(ex.id);
+  const setUnitOpen = (u, open) => { const c = cardOf(u[0]); if (c) c.classList.toggle('collapsed', !open); };
   const firstIncomplete = (after = -1) => { for (let i = after + 1; i < units.length; i++) if (!unitComplete(units[i])) return i; for (let i = 0; i <= after && i < units.length; i++) if (!unitComplete(units[i])) return i; return -1; };
 
   function renderStrip(name) {
@@ -114,9 +115,9 @@ App.screens.workouts = function(container) {
     if (cur) row.scrollLeft = Math.max(0, cur.offsetLeft - row.offsetLeft - 70);
     stripEl.querySelectorAll('[data-unit]').forEach(b => b.onclick = () => focusUnit(+b.dataset.unit, true));
     // Header progress on each exercise card
-    units.flat().forEach(ex => {
-      const c = cardOf(ex); if (!c) return;
-      const n = setsDone(ex), of = ex.sets || 1;
+    units.forEach(u => {
+      const c = cardOf(u[0]); if (!c) return;
+      const n = u.reduce((a, ex) => a + setsDone(ex), 0), of = u.reduce((a, ex) => a + (ex.sets || 1), 0);
       const p = c.querySelector('.ex-prog');
       p.textContent = n >= of ? `${of}/${of} ✓` : `${n}/${of}`;
       p.className = 'ex-prog' + (n >= of ? ' done' : n ? ' some' : '');
@@ -219,6 +220,7 @@ App.screens.workouts = function(container) {
     workoutContainer.innerHTML = '';
     units = [];
     completers = [];
+    cardMap = new Map();
     if (!name) return;
     const plan = PLAN.workouts[name];
     if (!plan) return;
@@ -278,8 +280,7 @@ App.screens.workouts = function(container) {
       if (g.type === 'superset') {
         const ssCard = document.createElement('div');
         ssCard.className = 'card';
-        ssCard.innerHTML = `<div class="card-title">Superset ${g.group[0].supersetGroup}</div>`;
-        g.group.forEach((ex, gi) => ssCard.appendChild(buildExerciseEl(ex, gi < g.group.length - 1 ? g.group[gi + 1] : null)));
+        ssCard.appendChild(buildSupersetEl(g.group));
         workoutContainer.appendChild(ssCard);
       } else {
         const card = document.createElement('div');
@@ -403,6 +404,189 @@ App.screens.workouts = function(container) {
       <a class="btn btn-secondary btn-full mt12" href="https://www.youtube.com/results?search_query=${search}" target="_blank" rel="noopener">Watch a demo (YouTube)</a>`);
   }
 
+  // One set row: number/tag, Last (tap to copy), weight × reps, ✓. onTick(nowDone) runs after the ✓ is tapped.
+  function makeSetRow(ex, s, ctx, onTick, tag) {
+    const { last, target, needWeight, needReps, fillers, clearers } = ctx;
+    const key = `${dayS}_${ex.id}_${s}`;
+    const saved = Store.get().setLogs[key] || {};
+    const prev = last && last.sets[s];
+    const row = document.createElement('div');
+    row.className = 'set-row set-grid' + (saved.done ? ' is-done' : '');
+    row.dataset.key = `${ex.id}:${s}`;
+    row.innerHTML = `
+      <span class="set-num${tag ? ' set-tag' : ''}">${tag || s + 1}</span>
+      ${prev
+        ? `<button class="last-cell" aria-label="Copy last time: ${prev.weight} × ${prev.reps}">${prev.weight || '–'} × ${prev.reps || '–'}</button>`
+        : '<span class="last-cell empty">—</span>'}
+      <span class="row" style="gap:4px">
+        <input class="set-input" type="text" inputmode="decimal" placeholder="wt" aria-label="Weight" value="${saved.weight||''}">
+        <span class="text-muted">×</span>
+        <input class="set-input" type="text" inputmode="numeric" placeholder="reps" aria-label="Reps" value="${saved.reps||''}">
+      </span>
+      <button class="set-done-btn ${saved.done?'done':''}" title="Mark set done">✓</button>
+    `;
+    const [wInput, rInput] = row.querySelectorAll('.set-input');
+    const doneBtn = row.querySelector('.set-done-btn');
+    // Red outline on an empty box once the set is ticked
+    const flag = () => {
+      const done = doneBtn.classList.contains('done');
+      wInput.classList.toggle('missing', done && needWeight && !wInput.value.trim());
+      rInput.classList.toggle('missing', done && needReps && !rInput.value.trim());
+    };
+    wInput.addEventListener('input', flag);
+    rInput.addEventListener('input', flag);
+    const copy = row.querySelector('button.last-cell');
+    if (copy) copy.onclick = () => { wInput.value = prev.weight || ''; rInput.value = prev.reps || ''; saveSet(); };
+    clearers.push(() => {
+      wInput.value = ''; rInput.value = '';
+      doneBtn.classList.remove('done'); row.classList.remove('is-done');
+      Store.set(d => { delete d.setLogs[key]; });
+      flag();
+    });
+    completers.push(() => {
+      // Fill only the numbers this exercise needs (no weight for bodyweight, nothing for timed holds)
+      const t = target && target.sets[s];
+      if (needWeight && !wInput.value.trim()) wInput.value = (t && t.weight) || (prev && prev.weight) || '';
+      if (needReps && !rInput.value.trim()) rInput.value = (t && t.reps) || (prev && prev.reps) || '';
+      doneBtn.classList.add('done'); row.classList.add('is-done');
+      saveSet();
+    });
+    // Target fills only sets not yet ticked; returns whether it filled this one
+    fillers.push(() => {
+      if (doneBtn.classList.contains('done') || !target || !target.sets[s]) return false;
+      wInput.value = target.sets[s].weight || wInput.value;
+      rInput.value = target.sets[s].reps;
+      saveSet();
+      return true;
+    });
+    function saveSet() {
+      Store.set(d => {
+        d.setLogs[key] = { weight: wInput.value, reps: rInput.value, done: doneBtn.classList.contains('done') };
+      });
+      flag();
+    }
+    wInput.addEventListener('change', saveSet);
+    rInput.addEventListener('change', saveSet);
+    doneBtn.addEventListener('click', () => {
+      const nowDone = !doneBtn.classList.contains('done');
+      doneBtn.classList.toggle('done', nowDone);
+      row.classList.toggle('is-done', nowDone);
+      saveSet();
+      onTick(nowDone);
+    });
+    flag();
+    return row;
+  }
+
+  // Superset as rounds: one card, each round = one set of each exercise in order, rest after the last one
+  function buildSupersetEl(group) {
+    const wrap = document.createElement('div');
+    wrap.className = 'exercise-card ss-card';
+    const letter = group[0].supersetGroup;
+    const rounds = Math.max(...group.map(e => e.sets || 1));
+    const anchor = `ss:${group[0].id}`;
+    const short = e => e.label.replace(/^[A-Z]\d?\s+/, '');
+    const lastEx = group[group.length - 1];
+    const between = App.parseRestSeconds(group[0].rest) || /\d+\s*-\s*\d+/.test(group[0].rest);
+    const how = `${group.map(short).join(between ? `, rest ${group[0].rest}, then ` : ', then straight to ')}, then rest ${lastEx.rest}. Repeat for ${rounds} rounds.`;
+    const fillers = [], clearers = [];
+    const info = group.map(ex => {
+      const last = lastSession(ex.id, dayS);
+      const workSec = App.parseWorkSeconds(ex.reps);
+      return { ex, last, target: targetFor(ex, last), workSec,
+        needReps: !workSec, needWeight: !workSec && !/push ups|hyperextension/i.test(ex.label),
+        restSec: App.parseRestSeconds(ex.rest), pr: getPR(ex.id), fillers: [], clearers };
+    });
+    wrap.innerHTML = `
+      <div class="row-between ex-head">
+        <div class="exercise-name">Superset ${letter} · ${rounds} rounds</div>
+        <span class="ex-prog"></span><svg class="icon chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="ex-body">
+        <div class="ss-how">${how}</div>
+        ${info.map((m, i) => `<div class="ss-ex" data-i="${i}">
+          <div class="row-between">
+            <button class="exercise-name ex-info-btn" aria-label="Coach's instructions for ${m.ex.label}">${m.ex.label} <svg class="icon ex-info-i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></button>
+            ${m.pr ? `<span class="pr-badge">PR ${m.pr}</span>` : ''}
+          </div>
+          <div class="exercise-meta">${m.ex.sets}×${m.ex.reps}
+            ${m.ex.tempo ? ` · <button class="tempo-chip" aria-label="Explain tempo ${m.ex.tempo}">${m.ex.tempo}</button>` : ''}
+            ${m.workSec ? ` <button class="work-btn" aria-label="Start ${m.workSec} second timer">▶ ${App.fmtClock(m.workSec)}</button>` : ''}</div>
+          ${m.ex.note ? `<div class="text-sm text-muted" style="margin-bottom:6px">${m.ex.note}</div>` : ''}
+          ${m.target ? `<button class="target-line" aria-label="Fill ${m.ex.label} sets with target">
+              <span><span class="target-tag">Target</span> ${m.target.text}</span>
+              <span class="target-fill">Tap to fill ${m.ex.label.split(' ')[0]} sets</span>
+            </button>` : ''}
+        </div>`).join('')}
+        <div class="set-grid set-head">
+          <span></span><span>Last</span><span>This week</span><button class="clear-sets" aria-label="Clear this superset's entries">Clear</button>
+        </div>
+        <div class="ss-rounds"></div>
+      </div>`;
+    wrap.id = 'ex-' + group[0].id;
+    group.forEach(ex => cardMap.set(ex.id, wrap));
+    const head = wrap.querySelector('.ex-head');
+    head.onclick = () => { wrap.classList.toggle('collapsed'); refreshStrip(); };
+    wrap.querySelectorAll('.ss-ex').forEach(el => {
+      const m = info[+el.dataset.i];
+      el.querySelector('.ex-info-btn').onclick = e => { e.stopPropagation(); showInfo(m.ex); };
+      const tc = el.querySelector('.tempo-chip'); if (tc) tc.onclick = () => showTempo(m.ex);
+      const tb = el.querySelector('.target-line');
+      if (tb) tb.onclick = () => {
+        const n = m.fillers.filter(f => f()).length;
+        App.toast(n ? `Filled ${n} ${m.ex.label.split(' ')[0]} set${n > 1 ? 's' : ''}. Tick ✓ when done, or edit first` : 'All sets already ticked');
+      };
+      const wb = el.querySelector('.work-btn');
+      if (wb) wb.onclick = () => { placeSlot(null); App.timer.start({ seconds: m.workSec, kind: 'work', label: short(m.ex), anchor, rowIdx: null }); };
+    });
+    wrap.querySelector('.clear-sets').onclick = () => { clearers.forEach(c => c()); markNext(); onSetChange(group[0]); };
+
+    const slot = document.createElement('div');
+    slot.className = 'timer-slot';
+    slot.dataset.timerAnchor = anchor;
+    const roundsEl = wrap.querySelector('.ss-rounds');
+    const placeSlot = k => {
+      const after = k == null ? wrap.querySelector('.set-head') : roundsEl.querySelector(`[data-key="${k}"]`);
+      (after || wrap.querySelector('.set-head')).after(slot);
+    };
+    // Blue highlight on the next set to do (in round order)
+    const markNext = () => {
+      const rows = [...roundsEl.querySelectorAll('.set-row')];
+      rows.forEach(r => r.classList.remove('ss-cur'));
+      const n = rows.find(r => !r.classList.contains('is-done'));
+      if (n) n.classList.add('ss-cur');
+    };
+    for (let r = 0; r < rounds; r++) {
+      const rd = document.createElement('div');
+      rd.className = 'ss-round';
+      rd.innerHTML = `<div class="ss-round-title">Round ${r + 1}</div>`;
+      info.forEach((m, gi) => {
+        if (r >= (m.ex.sets || 1)) return;
+        const isLast = gi === info.length - 1;
+        const nextM = info[gi + 1];
+        const row = makeSetRow(m.ex, r, { last: m.last, target: m.target, needWeight: m.needWeight, needReps: m.needReps, fillers: m.fillers, clearers }, nowDone => {
+          markNext();
+          if (!nowDone || isPast) { onSetChange(m.ex); return; }
+          if (!isLast && !m.restSec) { App.toast(`Now ${nextM.ex.label}${/\d+\s*-\s*\d+/.test(m.ex.rest) ? ` (rest ${m.ex.rest})` : ', no rest'}`); onSetChange(m.ex); return; }
+          if (m.restSec > 0) {
+            placeSlot(`${m.ex.id}:${r}`);
+            const what = !isLast ? nextM.ex.label.split(' ')[0] : r + 1 < rounds ? `round ${r + 2}` : 'next exercise';
+            App.timer.start({ seconds: m.restSec, kind: 'rest', label: `Superset ${letter} · ${what}`, anchor, rowIdx: `${m.ex.id}:${r}`, range: /\d+\s*-\s*\d+/.test(m.ex.rest) ? m.ex.rest : null });
+          }
+          onSetChange(m.ex);
+        }, m.ex.label.split(' ')[0]);
+        rd.appendChild(row);
+      });
+      if (r < rounds - 1 && lastEx.rest && lastEx.rest !== '0s') rd.insertAdjacentHTML('beforeend', `<div class="ss-rest">rest ${lastEx.rest}</div>`);
+      roundsEl.appendChild(rd);
+    }
+    markNext();
+    const st = App.timer.state;
+    if (st && st.anchor === anchor) placeSlot(st.rowIdx);
+    renderInlineTimer(App.timer.state);
+    return wrap;
+  }
+
   // nextInSuperset: the exercise you go to straight after this one (no rest), or null
   function buildExerciseEl(ex, nextInSuperset) {
     const wrap = document.createElement('div');
@@ -462,6 +646,7 @@ App.screens.workouts = function(container) {
 
     // Collapsible: header (name, PR, sets done, chevron) + body
     wrap.id = 'ex-' + ex.id;
+    cardMap.set(ex.id, wrap);
     const head = wrap.firstElementChild;
     head.classList.add('ex-head');
     head.insertAdjacentHTML('beforeend', `<span class="ex-prog"></span><svg class="icon chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>`);
@@ -484,72 +669,9 @@ App.screens.workouts = function(container) {
       const filled = fillers.filter(f => f()).length;
       App.toast(filled ? `Filled ${filled} set${filled > 1 ? 's' : ''}. Tick ✓ when done, or edit first` : 'All sets already ticked');
     };
+    const ctx = { last, target, needWeight, needReps, fillers, clearers };
     for (let s = 0; s < numSets; s++) {
-      const key = `${dayS}_${ex.id}_${s}`;
-      const saved = Store.get().setLogs[key] || {};
-      const prev = last && last.sets[s];
-      const row = document.createElement('div');
-      row.className = 'set-row set-grid' + (saved.done ? ' is-done' : '');
-      row.innerHTML = `
-        <span class="set-num">${s+1}</span>
-        ${prev
-          ? `<button class="last-cell" aria-label="Copy last time: ${prev.weight} × ${prev.reps}">${prev.weight || '–'} × ${prev.reps || '–'}</button>`
-          : '<span class="last-cell empty">—</span>'}
-        <span class="row" style="gap:4px">
-          <input class="set-input" type="text" inputmode="decimal" placeholder="wt" aria-label="Weight" value="${saved.weight||''}">
-          <span class="text-muted">×</span>
-          <input class="set-input" type="text" inputmode="numeric" placeholder="reps" aria-label="Reps" value="${saved.reps||''}">
-        </span>
-        <button class="set-done-btn ${saved.done?'done':''}" title="Mark set done">✓</button>
-      `;
-      const [wInput, rInput] = row.querySelectorAll('.set-input');
-      const doneBtn = row.querySelector('.set-done-btn');
-      // Red outline on an empty box once the set is ticked
-      const flag = () => {
-        const done = doneBtn.classList.contains('done');
-        wInput.classList.toggle('missing', done && needWeight && !wInput.value.trim());
-        rInput.classList.toggle('missing', done && needReps && !rInput.value.trim());
-      };
-      wInput.addEventListener('input', flag);
-      rInput.addEventListener('input', flag);
-      const copy = row.querySelector('button.last-cell');
-      if (copy) copy.onclick = () => { wInput.value = prev.weight || ''; rInput.value = prev.reps || ''; saveSet(); };
-      // Target fills only sets not yet ticked; returns whether it filled this one
-      clearers.push(() => {
-        wInput.value = ''; rInput.value = '';
-        doneBtn.classList.remove('done'); row.classList.remove('is-done');
-        Store.set(d => { delete d.setLogs[key]; });
-        flag();
-      });
-      completers.push(() => {
-        // Fill only the numbers this exercise needs (no weight for bodyweight, nothing for timed holds)
-        const t = target && target.sets[s];
-        if (needWeight && !wInput.value.trim()) wInput.value = (t && t.weight) || (prev && prev.weight) || '';
-        if (needReps && !rInput.value.trim()) rInput.value = (t && t.reps) || (prev && prev.reps) || '';
-        doneBtn.classList.add('done'); row.classList.add('is-done');
-        saveSet();
-      });
-      fillers.push(() => {
-        if (doneBtn.classList.contains('done') || !target.sets[s]) return false;
-        wInput.value = target.sets[s].weight || wInput.value;
-        rInput.value = target.sets[s].reps;
-        saveSet();
-        return true;
-      });
-
-      function saveSet() {
-        Store.set(d => {
-          d.setLogs[key] = { weight: wInput.value, reps: rInput.value, done: doneBtn.classList.contains('done') };
-        });
-        flag();
-      }
-      wInput.addEventListener('change', saveSet);
-      rInput.addEventListener('change', saveSet);
-      doneBtn.addEventListener('click', () => {
-        const nowDone = !doneBtn.classList.contains('done');
-        doneBtn.classList.toggle('done', nowDone);
-        row.classList.toggle('is-done', nowDone);
-        saveSet();
+      const row = makeSetRow(ex, s, ctx, nowDone => {
         if (!nowDone || isPast) { onSetChange(ex); return; }
         if (nextInSuperset) { App.toast(`Now ${nextInSuperset.label}, no rest`); onSetChange(ex); return; }
         if (restSec > 0) {
@@ -561,7 +683,6 @@ App.screens.workouts = function(container) {
       });
       rowsList.push(row);
       setRows.appendChild(row);
-      flag();
     }
     // Re-attach a running timer after the screen re-renders
     const st = App.timer.state;

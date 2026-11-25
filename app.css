@@ -524,3 +524,22 @@ select {
 .info-chips span { background: var(--bg3); border-radius: 8px; padding: 6px 10px; font-size: .8rem; color: var(--text2); }
 .info-chips strong { color: var(--text); font-size: .95rem; margin-right: 3px; }
 .ex-head .ex-info-btn { flex: 0 1 auto; margin-right: auto; }
+
+/* Superset as rounds */
+.ss-card .set-grid { grid-template-columns: 30px 72px 1fr 40px; }
+.ss-how { font-size: .85rem; background: color-mix(in srgb, var(--accent) 12%, var(--bg2)); border-radius: 8px; padding: 8px 10px; margin: 4px 0 10px; }
+.ss-ex { border-top: 1px solid var(--border); padding-top: 8px; margin-bottom: 8px; }
+.ss-ex .ex-info-btn { margin-right: auto; }
+.set-tag { color: var(--accent); font-weight: 700; font-size: .8rem; width: auto; }
+.ss-round { border-top: 1px solid var(--border); padding: 6px 0 4px; }
+.ss-round-title { font-size: .72rem; letter-spacing: .05em; text-transform: uppercase; color: var(--text2); margin-bottom: 2px; }
+.ss-rest { text-align: center; font-size: .75rem; color: var(--text2); padding-top: 2px; }
+.set-row.ss-cur { background: color-mix(in srgb, var(--accent) 14%, transparent); border-radius: 8px; box-shadow: inset 3px 0 0 var(--accent); }
+/* More room for the weight/reps boxes: thinner outer card around exercises, narrower Last column */
+#workout-exercise-list > .card:has(> .exercise-card) { padding: 4px; }
+.set-grid { grid-template-columns: 24px 62px 1fr 40px; gap: 6px; }
+.ss-card .set-grid { grid-template-columns: 28px 62px 1fr 40px; }
+/* Inline timer: use the card's full width so "Up next" has room */
+.exercise-card .timer-slot.active { margin: 6px -8px; padding: 10px 8px; }
+.exercise-card .ti-time, .exercise-card .ti-clock { min-width: 62px; }
+.ti-sub { min-width: 0; font-size: .85rem; }
