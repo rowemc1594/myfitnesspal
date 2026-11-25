@@ -417,7 +417,7 @@ App.screens.workouts = function(container) {
     row.className = 'set-row set-grid' + (saved.done ? ' is-done' : '');
     row.dataset.key = `${ex.id}:${s}`;
     row.innerHTML = `
-      <span class="set-num${tag ? ' set-tag' : ''}">${tag || s + 1}</span>
+      ${tag ? `<button class="set-num set-tag" aria-label="Coach's instructions for ${ex.label}">${tag}</button>` : `<span class="set-num">${s + 1}</span>`}
       ${prev
         ? `<button class="last-cell" aria-label="Copy last time: ${prev.weight} × ${prev.reps}">${prev.weight || '–'} × ${prev.reps || '–'}</button>`
         : '<span class="last-cell empty">—</span>'}
@@ -430,6 +430,8 @@ App.screens.workouts = function(container) {
     `;
     const [wInput, rInput] = row.querySelectorAll('.set-input');
     const doneBtn = row.querySelector('.set-done-btn');
+    const tagBtn = row.querySelector('button.set-tag');
+    if (tagBtn) tagBtn.onclick = () => showInfo(ex);
     // Red outline on an empty box once the set is ticked
     const flag = () => {
       const done = doneBtn.classList.contains('done');

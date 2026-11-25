@@ -530,7 +530,7 @@ select {
 .ss-how { font-size: .85rem; background: color-mix(in srgb, var(--accent) 12%, var(--bg2)); border-radius: 8px; padding: 8px 10px; margin: 4px 0 10px; }
 .ss-ex { border-top: 1px solid var(--border); padding-top: 8px; margin-bottom: 8px; }
 .ss-ex .ex-info-btn { margin-right: auto; }
-.set-tag { color: var(--accent); font-weight: 700; font-size: .8rem; width: auto; }
+.set-tag { color: var(--accent); font-weight: 700; font-size: .8rem; width: auto; background: none; border: none; padding: 6px 0; font-family: inherit; text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; }
 .ss-round { border-top: 1px solid var(--border); padding: 6px 0 4px; }
 .ss-round-title { font-size: .72rem; letter-spacing: .05em; text-transform: uppercase; color: var(--text2); margin-bottom: 2px; }
 .ss-rest { text-align: center; font-size: .75rem; color: var(--text2); padding-top: 2px; }
