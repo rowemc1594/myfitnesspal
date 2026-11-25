@@ -31,23 +31,25 @@ App.renderMealChecklist = function(el, ds, { allowReorder = false, collapsible =
   const allTicked = meal => meal.items.every((item, i) => isOptional(item) || ticks(meal.id)[i]);
   // A meal is done when every required item is ticked, or you closed it with some left out
   const isDone = meal => !!ticks(meal.id).closed || allTicked(meal);
-  let reordering = false;
 
-  function setTicks(mealId, fn) {
+  function setTicks(mealId, fn, meal) {
+    const was = meal ? isDone(meal) : false;
     Store.set(d => {
       d.mealLogs[ds] = d.mealLogs[ds] || {};
       d.mealLogs[ds][mealId] = d.mealLogs[ds][mealId] || {};
       fn(d.mealLogs[ds][mealId]);
     });
     render();
-  }
-
-  function move(idx, dir) {
-    const j = idx + dir;
-    if (j < 0 || j >= meals.length) return;
-    [meals[idx], meals[j]] = [meals[j], meals[idx]];
-    Store.set(d => { d.mealOrder = d.mealOrder || {}; d.mealOrder[ds] = meals.map(m => m.id); });
-    render();
+    // Focus mode: the open meal just got eaten -> collapse it and open the next one not eaten
+    if (meal && !was && isDone(meal) && App._mealOpen && meals[App._mealOpen.idx] === meal) {
+      setTimeout(() => {
+        const pos = meals.indexOf(meal);
+        let next = meals.findIndex((m, i) => i > pos && !isDone(m));
+        if (next < 0) next = meals.findIndex(m => !isDone(m));
+        App._mealOpen = { ds, idx: next };
+        render();
+      }, 600);
+    }
   }
 
   const CHECK = '<svg class="icon" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
@@ -70,57 +72,66 @@ App.renderMealChecklist = function(el, ds, { allowReorder = false, collapsible =
         </div>`).join('')}</div>`;
     el.appendChild(mac);
 
-    const open = !collapsible || !!App._mealsOpen;
-    const hdr = document.createElement(collapsible ? 'button' : 'div');
-    hdr.className = 'card' + (collapsible ? ' meal-summary' : '');
-    if (collapsible) hdr.setAttribute('aria-expanded', open);
-    hdr.innerHTML = `<div class="row-between">
-        <div>
-          <div class="card-title" style="margin-bottom:4px">${training ? 'Training day' : 'Non-training day'} meals</div>
-          <div><strong>${doneCount}</strong> of ${meals.length} eaten${!open && nextIdx >= 0 ? ` <span class="text-sm text-muted">· Up next: ${meals[nextIdx].label.replace(/ \(Post-Workout\)/, '')}</span>` : ''}</div>
-        </div>
-        ${allowReorder ? `<button class="btn btn-secondary btn-sm" data-reorder>${reordering ? 'Done' : 'Reorder'}</button>` : ''}
-        ${collapsible ? `<svg class="icon chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>` : ''}
+    // Which meal is open: remembered per day; starts on the next meal not yet eaten
+    if (!App._mealOpen || App._mealOpen.ds !== ds) App._mealOpen = { ds, idx: nextIdx >= 0 ? nextIdx : 0 };
+    const openIdx = App._mealOpen.idx;
+    const shortTime = pos => meals[pos].postWorkout ? 'After workout' : (mealTimes[pos] || '').replace(' AM', 'a').replace(' PM', 'p');
+
+    // Header + squares (same pattern as Workouts)
+    const hdr = document.createElement('div');
+    hdr.className = 'card';
+    hdr.innerHTML = `<div class="row-between" style="margin-bottom:8px">
+        <span class="card-title" style="margin:0">${training ? 'Training day' : 'Non-training day'} meals</span>
+        <span class="text-sm"><strong>${doneCount}</strong> of ${meals.length} eaten</span>
       </div>
-      <div class="progress-bar mt8"><div class="progress-fill" style="width:${doneCount / meals.length * 100}%"></div></div>`;
-    const rb = hdr.querySelector('[data-reorder]');
-    if (rb) rb.onclick = () => { reordering = !reordering; render(); };
-    if (collapsible) hdr.onclick = () => { App._mealsOpen = !open; render(); };
+      <div class="mp-strip">${meals.map((m, pos) => {
+        const t = ticks(m.id), req = m.items.filter(it => !isOptional(it)).length;
+        const got = m.items.filter((it, i) => !isOptional(it) && t[i]).length;
+        const st = isDone(m) ? 'done' : got ? 'some' : '';
+        return `<button class="xs-tile mp-tile ${st}${pos === openIdx && !isDone(m) ? ' cur' : ''}" data-pos="${pos}">
+          <b>M${pos + 1}${isDone(m) ? ' ✓' : ''}</b><span>${shortTime(pos)}</span><em>${got}/${req}</em></button>`;
+      }).join('')}</div>`;
+    hdr.querySelectorAll('[data-pos]').forEach(b => b.onclick = () => {
+      App._mealOpen = { ds, idx: +b.dataset.pos };
+      render();
+      const c = el.querySelector(`.meal-card[data-pos="${b.dataset.pos}"]`);
+      if (c) c.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
     el.appendChild(hdr);
 
-
-    (open ? meals : []).forEach((meal, pos) => {
+    meals.forEach((meal, pos) => {
       const done = isDone(meal);
       const t = ticks(meal.id);
+      const isOpen = pos === openIdx;
       const card = document.createElement('div');
-      card.className = 'card meal-card' + (done ? ' done' : '') + (pos === nextIdx && !reordering ? ' next' : '');
+      card.className = 'card meal-card' + (done ? ' done' : '') + (isOpen ? ' next' : ' collapsed');
+      card.dataset.pos = pos;
       card.innerHTML = `
         <div class="meal-head">
-          ${reordering
-            ? `<div class="row" style="gap:6px">
-                 <button class="btn-icon" data-move="-1" aria-label="Move up" ${pos === 0 ? 'disabled' : ''}>↑</button>
-                 <button class="btn-icon" data-move="1" aria-label="Move down" ${pos === meals.length - 1 ? 'disabled' : ''}>↓</button>
-               </div>`
-            : `<button class="meal-check" aria-pressed="${done}" aria-label="${done ? 'Unmark' : 'Mark'} ${meal.label} eaten">${CHECK}</button>`}
+          <button class="meal-check" aria-pressed="${done}" aria-label="${done ? 'Unmark' : 'Mark'} ${meal.label} eaten">${CHECK}</button>
           <div class="meal-title">
             <div>${meal.label.replace(/ \(Post-Workout\)/, '')}${meal.postWorkout ? ' <span class="badge badge-red">Post-workout</span>' : ''}</div>
             ${meal.macros ? (() => { const g = [0, 0, 0]; meal.macros.forEach((m, i) => { if (!isOptional(meal.items[i])) for (let k = 0; k < 3; k++) g[k] += m[k]; });
-              return `<div class="meal-macros">${g[0]} cal · ${g[1]}g P · ${g[2]}g F</div>`; })() : ''}
-            ${pos === nextIdx && !reordering ? '<div class="text-sm text-accent">Up next</div>' : ''}
+              return `<div class="meal-macros">${shortTime(pos) ? shortTime(pos) + ' · ' : ''}${g[0]} cal · ${g[1]}g P · ${g[2]}g F</div>`; })() : ''}
           </div>
-          ${meal.postWorkout ? '<div class="meal-time">After workout</div>' : mealTimes[pos] ? `<div class="meal-time">${mealTimes[pos]}</div>` : ''}
+          <svg class="icon chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
         </div>
-        ${reordering ? '' : `<div class="meal-items">
+        <div class="meal-items">
           ${meal.items.map((item, i) => `
             <button class="meal-item ${t[i] ? 'checked' : ''} ${isOptional(item) ? 'optional' : ''} ${done && !t[i] && !isOptional(item) ? 'skipped' : ''}" data-idx="${i}">
               <span class="mini-check">${CHECK}</span><span>${item}</span>
             </button>`).join('')}
-        </div>`}`;
+        </div>`;
       el.appendChild(card);
 
-      card.querySelectorAll('[data-move]').forEach(b => b.onclick = () => move(pos, parseInt(b.dataset.move)));
+      // Tap the meal's line (not the circle) to open/close it
+      card.querySelector('.meal-head').onclick = e => {
+        if (e.target.closest('.meal-check')) return;
+        App._mealOpen = { ds, idx: isOpen ? -1 : pos };
+        render();
+      };
       const big = card.querySelector('.meal-check');
-      if (big) big.onclick = () => setTicks(meal.id, m => {
+      big.onclick = () => setTicks(meal.id, m => {
         if (done) {
           // Undo: clear the whole meal
           meal.items.forEach((item, i) => { m[i] = false; });
@@ -132,10 +143,10 @@ App.renderMealChecklist = function(el, ds, { allowReorder = false, collapsible =
           // Nothing ticked yet: you ate it all
           meal.items.forEach((item, i) => { m[i] = isOptional(item) ? !!m[i] : true; });
         }
-      });
+      }, meal);
       card.querySelectorAll('.meal-item').forEach(b => b.onclick = () => {
         const i = parseInt(b.dataset.idx);
-        setTicks(meal.id, m => { m[i] = !m[i]; });
+        setTicks(meal.id, m => { m[i] = !m[i]; }, meal);
       });
     });
 

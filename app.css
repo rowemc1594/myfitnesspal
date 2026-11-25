@@ -497,3 +497,10 @@ select {
 .mp-meal.collapsed .chevron { transform: none; }
 .mp-meal.collapsed .mp-body { display: none; }
 .mp-body { margin-top: 6px; }
+/* Today's meals: collapsible like Workouts */
+.meal-card .meal-head { cursor: pointer; }
+.meal-card .meal-head .chevron { width: 18px; height: 18px; color: var(--text2); flex: none; transform: rotate(180deg); transition: transform .2s; }
+.meal-card.collapsed .chevron { transform: none; }
+.meal-card.collapsed .meal-items { display: none; }
+.mp-tile.some { border-color: var(--accent2); background: color-mix(in srgb, var(--accent2) 14%, var(--bg3)); }
+.mp-tile.some em { color: var(--accent2); }
