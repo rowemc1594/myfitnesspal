@@ -1,6 +1,6 @@
 'use strict';
 // Build number shown in the header. Bump together with CACHE_NAME in sw.js (tracker-v<BUILD>).
-const BUILD = 92;
+const BUILD = 93;
 /* ── Storage ────────────────────────────────────────────────── */
 const STORAGE_KEY = 'trackerData_v1';
 const BACKUP_KEY  = 'trackerData_backup';
@@ -496,6 +496,7 @@ const App = {
       clearInterval(this._iv);
       this._iv = setInterval(() => this._tick(), 100);
       App.keepAwake(true);
+      App.audioKeepAlive(true);
       this._tick();
     },
     add(sec) {
@@ -512,6 +513,7 @@ const App = {
       if (this.state && !this.state.doneAt) App.stopCountdownSound();
       this.state = null;
       this._emit();
+      App.audioKeepAlive(false);
       App.keepAwake(App.currentScreen === 'workouts');
     },
     // Time left in ms (frozen while paused)
@@ -675,6 +677,17 @@ const App = {
       }
     } catch (e) {}
   },
+  // While a timer runs, play an inaudible tone so the iPhone doesn't put the sound to sleep
+  // during a long rest (which made the first countdown beeps go missing).
+  audioKeepAlive(on) {
+    try {
+      if (on && this._useWA() && this._ctx && !this._keep) {
+        const o = this._ctx.createOscillator(), g = this._ctx.createGain();
+        o.frequency.value = 40; g.gain.value = 0.001; o.connect(g); g.connect(this._ctx.destination); o.start();
+        this._keep = o;
+      } else if (!on && this._keep) { this._keep.stop(); this._keep = null; }
+    } catch (e) { this._keep = null; }
+  },
   _waReady() { return this._useWA() && this._ctx && this._ctx.state === 'running'; },
   // Schedule one tone on the Web Audio clock; returns the oscillator so it can be cancelled
   _tone(at, freq, len) {
@@ -703,6 +716,11 @@ const App = {
       this.stopCountdownSound();
       this.unlockAudio();
       const secLeft = (endAt - Date.now()) / 1000;
+      if (this._useWA() && this._ctx && this._ctx.state !== 'running' && !this._retrying) {
+        this._retrying = true;
+        this._ctx.resume().then(() => { this._retrying = false; if (this._ctx.state === 'running') this.playCountdownSound(endAt); }, () => { this._retrying = false; });
+        return;
+      }
       if (this._waReady()) {
         this._countMode = 'wa';
         const now = this._ctx.currentTime, nodes = [];
