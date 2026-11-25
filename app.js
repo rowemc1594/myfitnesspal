@@ -1,6 +1,6 @@
 'use strict';
 // Build number shown in the header. Bump together with CACHE_NAME in sw.js (tracker-v<BUILD>).
-const BUILD = 82;
+const BUILD = 83;
 /* ── Storage ────────────────────────────────────────────────── */
 const STORAGE_KEY = 'trackerData_v1';
 const BACKUP_KEY  = 'trackerData_backup';
@@ -285,8 +285,16 @@ const App = {
     ? '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9.5-5.5z"/></svg>'
     : '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="2.5" width="3.5" height="11" rx="1"/><rect x="9.5" y="2.5" width="3.5" height="11" rx="1"/></svg>',
 
+  // Text size: scales the page area (text, buttons, tiles) together. Default Large.
+  TEXT_SIZES: [['Standard', 1], ['Large', 1.15], ['Extra large', 1.3]],
+  applyTextSize() {
+    const z = (Store.get().settings || {}).textScale || 1.15;
+    document.documentElement.style.setProperty('--ui-zoom', z);
+  },
+
   init() {
     Store.load();
+    App.applyTextSize();
 
     // Request persistent storage
     if (navigator.storage && navigator.storage.persist) {

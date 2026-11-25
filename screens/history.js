@@ -25,6 +25,18 @@ App.screens.history = function(container) {
   container.appendChild(bwCard);
   App.renderBodyweight(bwCard);
 
+  // Text size
+  const ts = document.createElement('div');
+  ts.className = 'card';
+  const cur = (data.settings || {}).textScale || 1.15;
+  ts.innerHTML = `<div class="row-between"><span class="card-title" style="margin:0">Text size</span>
+    <span class="seg">${App.TEXT_SIZES.map(([n, z]) => `<button data-z="${z}" class="${z === cur ? 'on' : ''}">${n}</button>`).join('')}</span></div>`;
+  ts.querySelectorAll('[data-z]').forEach(b => b.onclick = () => {
+    Store.set(d => d.settings.textScale = +b.dataset.z);
+    App.applyTextSize(); App.navigate('history');
+  });
+  container.appendChild(ts);
+
   // Backup (at the bottom: rarely needed)
   renderBackup();
   function renderBackup() {

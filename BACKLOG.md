@@ -84,6 +84,7 @@ Ideas from use, compared to the current app, then planned and shipped in small s
 | 65 | Bigger meal item check-offs | Item tick boxes were small (18 px) on short, indented rows | Each food is a full-width row (54 px tall, divider lines, darkens when pressed) with a 30 px tick box and larger text; tap anywhere on the line to tick it. | None |
 | 66 | Today: colored section edges | Workout and food cards all looked the same, so the page felt like one long list | Cards on Today get a 4 px left edge: **blue** for workout (This Week, Today's Plan) and **green** for food (macros, meals, extras, daily checklist). Picked from mockups (option 2 over tinted cards). | None |
 | 67 | Softer weight/reps hints | The "wt" and "reps" hints in empty set boxes looked bright, even with the cursor over them | Hints are a dim grey, and dimmer again while the box is being typed in. | None |
+| 68 | Bigger everything + Text size setting | Text and buttons were too small to read at the gym without glasses | The page area (text, buttons, tick boxes, tiles, spacing) scales together, so the layout stays the same. **Text size** on History: Standard / **Large (default, +15%)** / Extra large (+30%). Bottom nav labels a bit bigger. Header and nav aren't scaled. | None |
 
 ## Planned
 

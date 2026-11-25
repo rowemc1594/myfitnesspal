@@ -512,3 +512,7 @@ select {
 /* Today: section edges (blue = workout, green = food) */
 .card.sec-workout, .card.sec-food, .sec-food-group > .card { border-left: 4px solid var(--accent); }
 .card.sec-food, .sec-food-group > .card { border-left-color: var(--green); }
+
+/* Text size setting: scale the scrolling page and modals as a whole */
+#screen-container > *, #modal-content { zoom: var(--ui-zoom, 1.15); }
+.nav-btn span { font-size: 0.8rem; }
