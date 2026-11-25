@@ -112,6 +112,10 @@ Ideas from use, compared to the current app, then planned and shipped in small s
 The client app is built for one coaching business (the coach writes every client's plan). Phase 2:
 - **Coach admin portal:** see every client's usage and progress; build and change each client's plan (meals, workouts, notes).
 - **AI assistant for the coach:** across all clients, surface who's on track and who needs help, with suggestions grounded in her coaching philosophy.
+- **AI chat for the client (not yet; capture only).** Keep AI small: most of the app is taps and plain logic. Where it helps:
+  - **Notes and questions for the coach, by voice.** A chat button with a microphone. After e.g. Day 2: "My left shoulder hurt on the presses", "not sure about my form on rows", or "question for my coach: …". The AI tags it with context (date, workout, exercise and set if known, meal), sorts it (pain/injury, form, question, general feedback), and delivers it to the coach in the portal. Questions come back as replies in the same thread.
+  - **Later: control the app by talking.** "Add some food I ate" (optionally with a photo of it), "start my workout", etc., with the AI doing the same actions the buttons do and showing what it did so you can fix it.
+  - Needs the Phase 2 server (AI key, sign-in, coach inbox). Health notes such as pain are sensitive: store them privately, visible only to the client and their coach. Pain notes should be flagged clearly to the coach, not buried.
 
 What this means for the client app now:
 - Today all data lives on the phone (localStorage) with no accounts. Phase 2 needs sign-in, a backend, and sync from the phone to the coach.
