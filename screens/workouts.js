@@ -205,7 +205,7 @@ App.screens.workouts = function(container) {
         <button class="btn btn-secondary btn-full mt12" id="fin-keep">Keep going</button>
         <button class="btn btn-secondary btn-full mt8" id="fin-asis">Finish as is${left.length ? ' (partial)' : ''}</button>
         ${left.length ? `<button class="btn btn-primary btn-full mt8" id="fin-all">Mark everything done</button>
-          <div class="text-sm text-muted mt8">Ticks the remaining sets and fills empty ones from your targets or last time.</div>` : ''}`);
+          <div class="text-sm text-muted mt8">Ticks the remaining sets and fills empty ones from last time.</div>` : ''}`);
       document.getElementById('fin-keep').onclick = () => App.closeModal();
       document.getElementById('fin-asis').onclick = () => { App.closeModal(); doFinish(name); };
       const all = document.getElementById('fin-all');
@@ -292,6 +292,7 @@ App.screens.workouts = function(container) {
   }
 
   // Rep goal per set from the plan ("8", "10-12" -> top of range, "12/10/8/6+drops" -> per set); null if not a rep count
+  const TARGETS_OFF = true;
   function repTargets(ex) {
     const n = ex.sets || 1;
     if (ex.reps.includes('/')) {
@@ -305,6 +306,8 @@ App.screens.workouts = function(container) {
   // Simple progression: every set hit its rep goal last time -> add 5; otherwise same weight, chase the reps.
   // Returns { text, sets: [{weight, reps}] } so the target can fill the set rows.
   function targetFor(ex, last) {
+    // Turned off (b88) until the coach defines a progression rule; the Last column stays.
+    if (TARGETS_OFF) return null;
     const goals = repTargets(ex);
     if (!goals) return null;
     const repsText = goals.every(g => g === goals[0]) ? String(goals[0]) : goals.join('/');

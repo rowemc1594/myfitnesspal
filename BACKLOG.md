@@ -89,6 +89,7 @@ Ideas from use, compared to the current app, then planned and shipped in small s
 | 70 | Info tap limited to the name | The name button stretched across the empty header space, so tapping there opened the pop-up instead of collapsing | Only the exercise name and ⓘ open the coach's instructions; the rest of the header collapses the card. | None |
 | 71 | Supersets as rounds | A superset showed as two separate exercise cards, so it looked like you finish A1 then do A2 | One card per superset: plain instruction ("Seated DB Curls, then straight to Rope Pushdowns, then rest 60s. Repeat for 4 rounds."), each exercise's name/ⓘ, tempo, note and target, then **Round 1, Round 2…** each with the A1 row then the A2 row. The next set to do is highlighted blue. Ticking A1 says "Now A2, no rest"; ticking A2 starts the rest timer under it. Applies to Day 1 B, Day 2 D, Day 4 A and B. Also: wider weight/reps boxes on all exercises (thinner outer card, narrower Last column) and more room for the inline timer text. | None |
 | 72 | Superset row spacing | The A1/A2 tag sat right against the blue "next set" bar | Superset rows get a little inner padding so the tag clears the bar. | None |
+| 73 | Target line removed for now | The Target box took up space and its +5 rule was ours, not the coach's | Target line and "Tap to fill" are hidden on every exercise (switch `TARGETS_OFF` in workouts.js). The Last column stays: tap it to copy last time's numbers. Bring back once the coach sets the progression rule. | None |
 
 ## Planned
 
