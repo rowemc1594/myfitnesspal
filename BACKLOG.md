@@ -93,6 +93,7 @@ Ideas from use, compared to the current app, then planned and shipped in small s
 | 74 | Outline the open exercise card | Open cards blended into the dark page, so it was hard to see which one you were on | An expanded exercise or superset card gets a grey outline, matching the superset bracket in the strip. Collapsed cards have none. | None |
 | 75 | Superset heading band | The superset title and "how to" line looked like the content below | When a superset card is open, its title and instruction line sit on a slightly lighter band across the top of the card (grey text instead of the blue box), so they read as a heading. | None |
 | 76 | A1/A2 tags open coach info | The blue A1/A2 in each round looked like links but did nothing | Tapping A1 or A2 in a round opens the same coach pop-up as the exercise name / ⓘ. Tags get a dotted underline. | None |
+| 77 | Timer sound: music, frozen 0:06, silent third timer | Beeps stopped your music and it never came back; 2nd timer froze at 6 then jumped to 1; 3rd timer was silent | Beeps are now scheduled on the Web Audio clock (no clip to stall, so the clock can't freeze) and the sound wakes up again on every tap. iPhone audio set to **ambient**: beeps mix over your music instead of stopping it. Trade-off: the silent switch must be off. Pausing during the last 5 s and resuming picks the beeps back up. Phones before iOS 17 use the old clips, with the clock never drifting more than 0.8 s. | None |
 
 ## Planned
 

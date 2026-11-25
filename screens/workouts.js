@@ -51,8 +51,8 @@ App.screens.workouts = function(container) {
   container.appendChild(selCard);
   selCard.querySelector('#sound-test-btn').onclick = () => {
     App.unlockAudio();
-    App.playCountdownSound(0); // the same 5-4-3-2-1-Go clip the timer uses
-    App.toast("Hear it? If not: turn up volume. On iPhone, check the silent switch too.", 4000);
+    App.playCountdownSound(Date.now() + 5200); // the same 5-4-3-2-1-Go the timer uses
+    App.toast("Hear it? If not: turn up volume. On iPhone, the silent switch must be off.", 4000);
   };
   selCard.querySelector('#tempo-help-btn').onclick = () =>
     App.showModal(`<h2>${PLAN.tempoHelp.title}</h2><div class="mt8">${PLAN.tempoHelp.body.map(b => `<p class="text-sm mt8">${b}</p>`).join('')}</div>

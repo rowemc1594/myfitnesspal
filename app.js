@@ -1,6 +1,6 @@
 'use strict';
 // Build number shown in the header. Bump together with CACHE_NAME in sw.js (tracker-v<BUILD>).
-const BUILD = 91;
+const BUILD = 92;
 /* ── Storage ────────────────────────────────────────────────── */
 const STORAGE_KEY = 'trackerData_v1';
 const BACKUP_KEY  = 'trackerData_backup';
@@ -541,13 +541,17 @@ const App = {
       // at 0:06. Once it's actually playing, the clock follows the clip so numbers match beeps.
       const LEAD = 6;
       const msLeft = st.endAt - Date.now();
-      if (!st.doneAt && !st.countStarted && msLeft <= LEAD * 1000 && msLeft > 4500) {
+      if (!st.doneAt && !st.countStarted && msLeft <= LEAD * 1000 && msLeft > 300) {
         st.countStarted = true;
-        App.playCountdownSound(Math.max(0, LEAD - msLeft / 1000));
+        st.baseEndAt = st.endAt;
+        App.playCountdownSound(st.endAt);
       }
+      // Clip fallback only: follow the clip so numbers match beeps, but never drift more than
+      // 0.8 s from the real end (a stalled clip used to freeze the clock at 0:06).
       const clip = App._clips && App._clips.count;
-      if (!st.doneAt && st.countStarted && clip && !clip.paused && clip.currentTime > 0.05) {
-        st.endAt = Date.now() + (LEAD - clip.currentTime) * 1000;
+      if (!st.doneAt && st.countStarted && App._countMode === 'clip' && clip && !clip.paused && clip.currentTime > 0.05) {
+        const want = Date.now() + (LEAD - clip.currentTime) * 1000;
+        if (Math.abs(want - st.baseEndAt) < 800) st.endAt = want;
       }
       const rem = this.remaining();
       if (!st.doneAt && rem >= 1 && rem <= 5 && st.lastCount !== rem) {
@@ -613,9 +617,6 @@ const App = {
   },
 
   // ── Sound ──
-  // Beeps are real audio clips (generated WAVs) played through <audio> elements.
-  // iPhones mute Web Audio when the silent switch is on but still play media audio,
-  // and only allow sound after a tap: unlockAudio() runs on the ✓ tap and primes the clips.
   _clips: null,
   _makeWav(tones) {
     // tones: [{freq, len, gap}] -> data: URL of a 16-bit mono WAV
@@ -638,16 +639,23 @@ const App = {
     let bin = ''; new Uint8Array(buf).forEach(b => bin += String.fromCharCode(b));
     return 'data:audio/wav;base64,' + btoa(bin);
   },
+  // Beeps are scheduled on the Web Audio clock (exact timing, nothing to stall). The audio
+  // session is 'ambient' so they mix over your music instead of stopping it. iPhones without
+  // audioSession (before iOS 17) fall back to the WAV clips, which play with the silent switch on.
+  _useWA() { return !!navigator.audioSession && !!(window.AudioContext || window.webkitAudioContext); },
   unlockAudio() {
     try {
-      // Safari 17+: treat our sound as media playback so the silent switch doesn't mute it
-      if (navigator.audioSession) navigator.audioSession.type = 'playback';
+      if (navigator.audioSession) navigator.audioSession.type = 'ambient';
+      if (this._useWA()) {
+        this._ctx = this._ctx || new (window.AudioContext || window.webkitAudioContext)();
+        // Every tap re-wakes it: iOS suspends/interrupts the context after other audio plays
+        if (this._ctx.state !== 'running') this._ctx.resume();
+      }
       if (!this._clips) {
         this._clips = {
           tick: new Audio(this._makeWav([{ freq: 660, len: 0.12 }])),
           go: new Audio(this._makeWav([{ freq: 880, len: 0.25, gap: 0.1 }, { freq: 880, len: 0.25, gap: 0.1 }, { freq: 1100, len: 0.45 }])),
-          // 1 s of silence (absorbs the phone's start-up delay), then 5 ticks exactly
-          // 1 s apart, then Go at 6.0 s. Started at 0:06 left.
+          // 1 s of silence, then 5 ticks 1 s apart, then Go at 6.0 s. Started at 0:06 left.
           count: new Audio(this._makeWav([
             { freq: 0, len: 0, gap: 1 },
             ...[0, 1, 2, 3, 4].map(() => ({ freq: 660, len: 0.12, gap: 0.88 })),
@@ -655,12 +663,11 @@ const App = {
           ]))
         };
       }
-      // Prime each clip inside the tap (muted play + pause) so later plays are allowed
-      if (!this._primed) {
+      // Prime the clips once inside a tap (muted play + pause) so later plays are allowed
+      if (!this._primed && !this._useWA()) {
         Object.values(this._clips).forEach(a => {
           a.muted = true;
           const p = a.play();
-          // Only undo the priming if a real beep hasn't taken over this clip meanwhile
           const done = () => { if (a.muted) { a.pause(); a.currentTime = 0; a.muted = false; } };
           if (p && p.then) p.then(done, () => { a.muted = false; }); else done();
         });
@@ -668,41 +675,54 @@ const App = {
       }
     } catch (e) {}
   },
+  _waReady() { return this._useWA() && this._ctx && this._ctx.state === 'running'; },
+  // Schedule one tone on the Web Audio clock; returns the oscillator so it can be cancelled
+  _tone(at, freq, len) {
+    const ctx = this._ctx, o = ctx.createOscillator(), g = ctx.createGain();
+    o.frequency.value = freq; o.connect(g); g.connect(ctx.destination);
+    g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(0.5, at + 0.01);
+    g.gain.setValueAtTime(0.5, at + len - 0.04); g.gain.exponentialRampToValueAtTime(0.0001, at + len);
+    o.start(at); o.stop(at + len + 0.02);
+    return o;
+  },
+  _goTones(at) { return [this._tone(at, 880, 0.25), this._tone(at + 0.35, 880, 0.25), this._tone(at + 0.7, 1100, 0.45)]; },
   // kind: 'tick' (countdown) or 'go' (timer done)
   beep(kind = 'tick') {
     try {
       this.unlockAudio();
+      if (this._waReady()) { const t = this._ctx.currentTime + 0.02; kind === 'go' ? this._goTones(t) : this._tone(t, 660, 0.12); return; }
       const a = this._clips[kind];
       a.muted = false; a.currentTime = 0;
       const p = a.play();
-      if (p && p.catch) p.catch(() => this._webBeep(kind));
-    } catch (e) { this._webBeep(kind); }
+      if (p && p.catch) p.catch(() => {});
+    } catch (e) {}
   },
-  playCountdownSound(offset) {
+  // 5-4-3-2-1 ticks and Go, lined up with endAt (a Date.now() timestamp)
+  playCountdownSound(endAt) {
     try {
+      this.stopCountdownSound();
       this.unlockAudio();
+      const secLeft = (endAt - Date.now()) / 1000;
+      if (this._waReady()) {
+        this._countMode = 'wa';
+        const now = this._ctx.currentTime, nodes = [];
+        [5, 4, 3, 2, 1].forEach(k => { const d = secLeft - k; if (d > -0.05) nodes.push(this._tone(now + Math.max(0, d), 660, 0.12)); });
+        nodes.push(...this._goTones(now + Math.max(0, secLeft)));
+        this._countNodes = nodes;
+        return;
+      }
+      this._countMode = 'clip';
       const a = this._clips.count;
-      a.muted = false; a.currentTime = Math.max(0, offset);
+      a.muted = false; a.currentTime = Math.max(0, 6 - secLeft);
       const p = a.play();
-      if (p && p.catch) p.catch(() => this._webBeep('tick'));
+      if (p && p.catch) p.catch(() => {});
     } catch (e) {}
   },
   stopCountdownSound() {
-    try { const a = this._clips && this._clips.count; if (a) { a.pause(); a.currentTime = 0; } } catch (e) {}
-  },
-  // Fallback if media playback is refused
-  _webBeep(kind) {
     try {
-      this._ctx = this._ctx || new (window.AudioContext || window.webkitAudioContext)();
-      if (this._ctx.state !== 'running') this._ctx.resume();
-      const ctx = this._ctx, t0 = ctx.currentTime, n = kind === 'go' ? 3 : 1;
-      for (let i = 0; i < n; i++) {
-        const o = ctx.createOscillator(), g = ctx.createGain(), len = kind === 'go' ? 0.25 : 0.12;
-        o.frequency.value = kind === 'go' ? 880 : 660; o.connect(g); g.connect(ctx.destination);
-        const t = t0 + i * 0.35;
-        g.gain.setValueAtTime(0.35, t); g.gain.exponentialRampToValueAtTime(0.001, t + len);
-        o.start(t); o.stop(t + len + 0.01);
-      }
+      (this._countNodes || []).forEach(o => { try { o.stop(); } catch (e) {} });
+      this._countNodes = null;
+      const a = this._clips && this._clips.count; if (a) { a.pause(); a.currentTime = 0; }
     } catch (e) {}
   },
   // Rest string -> seconds. Ranges use the low end ("60-90s" -> 60, "0-15s" -> 0); "2 min" -> 120
