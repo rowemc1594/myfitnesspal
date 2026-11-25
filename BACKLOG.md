@@ -102,6 +102,9 @@ Ideas from use, compared to the current app, then planned and shipped in small s
 
 - **Generate the 13 warm-up illustrations** using `images/warmups/PROMPTS.md`, save them with the listed filenames, commit, push. Each starts showing in the app automatically. Then bump `CACHE_NAME` so phones fetch them.
 
+- **Scan a barcode to add a food.** Point the camera at a package barcode; look it up in Open Food Facts (free, no account or key) and pre-fill name, serving size, calories, protein, carbs and fat for you to check and save as a new food. iPhone Safari has no built-in barcode reader, so use a small scanning library (e.g. ZXing). If the product isn't found, fall back to the manual form with the barcode kept. No server needed. About a day of work.
+  - Later (Phase 2, needs a server for the AI key): photo of a **nutrition label** read by AI into the same form. Photo-of-a-plate estimates were ruled out for now: typically 20-40% off, mostly on portions and hidden oils.
+
 _(empty)_
 
 ## Phase 2 (future): coach portal + AI
