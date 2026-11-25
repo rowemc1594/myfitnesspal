@@ -516,3 +516,10 @@ select {
 /* Text size setting: scale the scrolling page and modals as a whole */
 #screen-container > *, #modal-content { zoom: var(--ui-zoom, 1.15); }
 .nav-btn span { font-size: 0.8rem; }
+
+/* Exercise name opens the coach's instructions */
+.ex-info-btn { background: none; border: none; padding: 4px 0; color: var(--text); font: inherit; font-weight: 700; font-size: 0.95rem; text-align: left; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; -webkit-tap-highlight-color: transparent; }
+.ex-info-i { width: 17px; height: 17px; color: var(--accent); }
+.info-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.info-chips span { background: var(--bg3); border-radius: 8px; padding: 6px 10px; font-size: .8rem; color: var(--text2); }
+.info-chips strong { color: var(--text); font-size: .95rem; margin-right: 3px; }

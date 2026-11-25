@@ -383,6 +383,26 @@ App.screens.workouts = function(container) {
       <p class="text-sm text-muted mt12">Tempo is always three numbers: lower, pause at the bottom, lift.</p>`);
   }
 
+  // Coach's instructions for one exercise (tap its name)
+  function showInfo(ex) {
+    const name = ex.label.replace(/^[A-Z]\d?\s+/, '');
+    const pair = /^[A-Z]\d\s/.test(ex.label);
+    const weighted = !App.parseWorkSeconds(ex.reps) && !/push ups|stretch|hyperextension/i.test(ex.label);
+    const search = encodeURIComponent(name + ' exercise how to');
+    App.showModal(`<h2>${ex.label}</h2>
+      <div class="info-chips">
+        <span><strong>${ex.sets}×${ex.reps}</strong> sets × reps</span>
+        ${ex.tempo ? `<span><strong>${ex.tempo}</strong> tempo</span>` : ''}
+        ${ex.rest ? `<span><strong>${ex.rest === '0s' ? 'none' : ex.rest}</strong> rest</span>` : ''}
+      </div>
+      <div class="card mt12" style="margin-bottom:0"><div class="card-title" style="margin-bottom:4px">From your coach</div>
+        <div>${ex.coach || ex.note || 'No special instructions for this one. Follow the sets, reps and tempo above.'}</div></div>
+      ${pair ? `<div class="text-sm mt12"><strong>Superset:</strong> do one set of ${ex.label.slice(0, 1)}1, rest as listed, then one set of ${ex.label.slice(0, 1)}2. Repeat until all sets of both are done.</div>` : ''}
+      ${ex.tempo ? `<div class="text-sm mt12"><strong>Tempo ${ex.tempo}:</strong> ${ex.tempo.split('-')[0]}s lowering, ${ex.tempo.split('-')[1]}s pause at the bottom, ${ex.tempo.split('-')[2]}s lifting.</div>` : ''}
+      ${weighted ? `<div class="text-sm mt12"><strong>Warm-up sets:</strong> a couple of light, low-rep sets, getting heavier (e.g. for 100 lb: 45×5, 65×3, 85×1), then start your work sets.</div>` : ''}
+      <a class="btn btn-secondary btn-full mt12" href="https://www.youtube.com/results?search_query=${search}" target="_blank" rel="noopener">Watch a demo (YouTube)</a>`);
+  }
+
   // nextInSuperset: the exercise you go to straight after this one (no rest), or null
   function buildExerciseEl(ex, nextInSuperset) {
     const wrap = document.createElement('div');
@@ -404,7 +424,7 @@ App.screens.workouts = function(container) {
 
     wrap.innerHTML = `
       <div class="row-between">
-        <div class="exercise-name">${ex.label}</div>
+        <button class="exercise-name ex-info-btn" aria-label="Coach's instructions for ${ex.label}">${ex.label} <svg class="icon ex-info-i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></button>
         ${pr ? `<span class="pr-badge">PR ${pr}</span>` : ''}
       </div>
       <div class="exercise-meta">
@@ -451,6 +471,7 @@ App.screens.workouts = function(container) {
     wrap.appendChild(body);
     head.onclick = () => { wrap.classList.toggle('collapsed'); refreshStrip(); };
 
+    wrap.querySelector('.ex-info-btn').onclick = e => { e.stopPropagation(); showInfo(ex); };
     const tempoBtn = wrap.querySelector('.tempo-chip');
     if (tempoBtn) tempoBtn.onclick = () => showTempo(ex);
 

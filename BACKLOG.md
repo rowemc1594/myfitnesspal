@@ -85,6 +85,7 @@ Ideas from use, compared to the current app, then planned and shipped in small s
 | 66 | Today: colored section edges | Workout and food cards all looked the same, so the page felt like one long list | Cards on Today get a 4 px left edge: **blue** for workout (This Week, Today's Plan) and **green** for food (macros, meals, extras, daily checklist). Picked from mockups (option 2 over tinted cards). | None |
 | 67 | Softer weight/reps hints | The "wt" and "reps" hints in empty set boxes looked bright, even with the cursor over them | Hints are a dim grey, and dimmer again while the box is being typed in. | None |
 | 68 | Bigger everything + Text size setting | Text and buttons were too small to read at the gym without glasses | The page area (text, buttons, tick boxes, tiles, spacing) scales together, so the layout stays the same. **Text size** on History: Standard / **Large (default, +15%)** / Extra large (+30%). Bottom nav labels a bit bigger. Header and nav aren't scaled. | None |
+| 69 | Exercise name opens the coach's instructions | No way to see the coach's full instructions mid-workout; tapping the header only collapsed it | Each exercise name has a blue ⓘ; tapping it opens a pop-up: sets × reps, tempo, rest, **From your coach** (full text from the PDF for 18 exercises), how supersets work, what the tempo means, warm-up set guidance, and a YouTube demo link. Tapping elsewhere on the header still collapses. Also fixed: b83 shipped an empty service worker (offline cache off); restored. | None |
 
 ## Planned
 

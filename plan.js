@@ -9,16 +9,19 @@ const PLAN = {
       exercises: [
         {
           id: 'd1a', label: 'A Lying Leg Curls',
+          coach: "In addition to toes pointed, drive the hips into the bench during the entire rep using the glutes.",
           note: 'Toes pointed, drive hips into bench with glutes',
           sets: 4, reps: '12', tempo: '3-0-1', rest: '60-90s'
         },
         {
           id: 'd1b1', label: 'B1 Leg Press',
+          coach: "Slightly raise the heels off the platform so you’re focusing on pushing off the balls of the feet.",
           note: 'Heels slightly raised, push off balls of feet',
           sets: 4, reps: '10', tempo: '2-0-1', rest: '0-15s', supersetGroup: 'B'
         },
         {
           id: 'd1b2', label: 'B2 Full Squats',
+          coach: "Free bar, butt-to-heels squats with heels on plates. No Smith machines.",
           note: 'Free bar, butt-to-heels, heels on plates, no Smith',
           sets: 4, reps: '6', tempo: '2-0-1', rest: '120s', supersetGroup: 'B'
         },
@@ -29,16 +32,19 @@ const PLAN = {
         },
         {
           id: 'd1d', label: 'D Romanian Deadlifts',
+          coach: "Toes on plates.",
           note: 'Toes on plates',
           sets: 3, reps: '10', tempo: '3-0-1', rest: '60-90s'
         },
         {
           id: 'd1e', label: 'E Leg Extensions',
+          coach: "Sit straight up (vertical) and dorsiflex the ankle through the entire set.",
           note: 'Sit upright, dorsiflex the ankle all set',
           sets: 4, reps: '15', tempo: '2-0-1', rest: '30s'
         },
         {
           id: 'd1f', label: 'F Leg Press Calf Raise',
+          coach: "Note the 15-second pause in the stretched position at the bottom: 5 seconds down, 15 seconds held, 1 second up.",
           note: '5s down, 15s pause stretched, 1s up',
           sets: 1, reps: '10-12', tempo: '5-15-1', rest: 'none'
         }
@@ -55,31 +61,37 @@ const PLAN = {
         },
         {
           id: 'd2b', label: 'B Incline Barbell Press',
+          coach: "Do not let the weight touch your chest and don’t fully lock out. We want constant tension.",
           note: "Don't touch chest, no lockout, constant tension",
           sets: 3, reps: '8', tempo: '3-0-1', rest: '120s'
         },
         {
           id: 'd2c', label: 'C Slight Decline Smith Bench Press',
+          coach: "Do a warm-up set, then get to work. Get 12 reps on your first set. Next set, add a little weight and do 10 reps. 3rd set, add a little weight and do 8. 4th set, add a little weight and do 6, then drop the weight and do 8 more, then one final drop to complete failure.",
           note: 'Set 1=12, Set 2=10, Set 3=8, Set 4=6 (add weight each set), then drop for 8, then drop to failure',
           sets: 4, reps: '12/10/8/6+drops', tempo: '3-0-1', rest: '90s'
         },
         {
           id: 'd2d1', label: 'D1 Push Ups',
+          coach: "Go to failure each set.",
           note: '',
           sets: 3, reps: 'failure', tempo: '2-0-1', rest: '0s', supersetGroup: 'D'
         },
         {
           id: 'd2d2', label: 'D2 Pec Stretch',
+          coach: "Stretch both pecs for 30 seconds between sets of push ups, then rest 60 seconds.",
           note: 'Stretch both pecs 30s between sets, 60s rest after',
           sets: 3, reps: '30s each side', tempo: '', rest: '60s', supersetGroup: 'D'
         },
         {
           id: 'd2e', label: 'E Rear Delt Machine',
+          coach: "Palms down.",
           note: 'Palms down',
           sets: 4, reps: '20', tempo: '2-0-1', rest: '60s'
         },
         {
           id: 'd2f', label: 'F DB Laterals',
+          coach: "Raise these higher, all the way up to the 10 o’clock and 2 o’clock position.",
           note: 'Raise to 10 and 2 o\'clock',
           sets: 3, reps: '15', tempo: '2-0-1', rest: '60s'
         },
@@ -96,21 +108,25 @@ const PLAN = {
       exercises: [
         {
           id: 'd3a', label: 'A Wide-Grip Seated Cable Row',
+          coach: "Use a neutral grip if possible; if not, use a regular overhand grip. Do sets of 10 going up and take plenty of warm-ups. Once you get to a weight that is a pretty tough 10 (2 or 3 reps still in the tank), do 3 sets of 10 with it. Keep your elbows up and really flex your upper lats, traps and rhomboids.",
           note: 'Neutral grip if possible; work up in sets of 10 to a tough 10 with 2-3 reps in tank, then 3 sets',
           sets: 3, reps: '10', tempo: '2-1-1', rest: '90s'
         },
         {
           id: 'd3b1', label: 'B Rack Pulls from Mid Shin (Phase 1)',
+          coach: "Do sets of 3 until you can barely get 3 with good form. The last 3 sets count as working sets.",
           note: 'Sets of 3 until barely 3 with good form; last 3 sets are working sets',
           sets: 3, reps: '3', tempo: '2-1-1', rest: '120-180s'
         },
         {
           id: 'd3b2', label: 'C Rack Pulls from Mid Shin (Phase 2)',
+          coach: "Use the weight from your first working set in Phase 1 and do a 5-minute set: sets of 2, then step back, count to 10, and get back to work. If you feel your form slipping, take the rest to 20 seconds; if that’s not enough, 30. All reps with solid form. 1 total work set.",
           note: '5-min set using Phase 1 working weight; sets of 2, step back count to 10, repeat; rest 20s (30s if form slips)',
           sets: 1, reps: '5 min', tempo: '2-1-1', rest: '—'
         },
         {
           id: 'd3c', label: 'D Lat Pulldowns',
+          coach: "Overhand, medium-width grip.",
           note: 'Overhand medium grip',
           sets: 4, reps: '8', tempo: '3-0-1', rest: '60-90s'
         },
@@ -132,6 +148,7 @@ const PLAN = {
       exercises: [
         {
           id: 'd4a1', label: 'A1 Seated DB Curls',
+          coach: "Palm facing up the entire set.",
           note: 'Palms up all set',
           sets: 4, reps: '8 each', tempo: '3-0-1', rest: '0s', supersetGroup: 'A'
         },
@@ -142,6 +159,7 @@ const PLAN = {
         },
         {
           id: 'd4b1', label: 'B1 Alternating Hammer Curls',
+          coach: "Tack on 8 partial reps out of the bottom on all 4 sets.",
           note: '+8 bottom partials on all sets',
           sets: 4, reps: '12 each + 8 partials', tempo: '3-0-1', rest: '0s', supersetGroup: 'B'
         },
